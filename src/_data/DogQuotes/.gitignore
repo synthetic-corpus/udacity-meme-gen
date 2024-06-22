@@ -1,0 +1,5 @@
+# Text files not to be commited
+*.csv
+*.docx
+*.txt
+*.pdf
