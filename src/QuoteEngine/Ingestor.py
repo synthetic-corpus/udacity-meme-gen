@@ -1,4 +1,5 @@
 """This File Contains a mod classes used to ingest quotes."""
+import pandas
 from abc import ABC, abstractmethod
 from QuoteModel import QuoteMode
 
@@ -8,10 +9,15 @@ class IngestorInterface(ABC):
     extenstions = []
 
     @classmethod
-    def check_extention(cls, path: str) -> bool:
+    def check_extention(cls, path: str) -> None:
         """Checks the file extension for a match."""
         extension = path.split('.')[-1]
-        return extension in cls.extenions
+        if(extension not in cls.extenstions):
+            raise Exception(f'Cannot import ${path} as ',
+                            'one of these extentions!',
+                            f'{cls.extenstions}')
+        else:
+            pass
 
     @classmethod
     @abstractmethod
@@ -24,9 +30,19 @@ class IngestCSV(IngestorInterface):
     """Ingest the CSV format."""
     extenstions = ['csv']
 
+    @classmethod
     def ingest(cls, path: str) -> list[QuoteMode]:
-        """Each Realization will override."""
-        pass
+        """Ingests quotes from file to a list."""
+        cls.check_extention(path)
+        dataframe = pandas.read_csv(path,header=0)
+        wise_quotes = []  # to be returned
+        for _,row in dataframe.iterrows():
+            wise_quotes.append(
+                QuoteMode(row['body'],row['author'])
+            )
+        return wise_quotes
+
+
 
 
 class IngestDOCX(IngestorInterface):

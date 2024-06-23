@@ -2,3 +2,6 @@
 # but without expectation that that test would be committed.
 testscript.py
 experiment.py
+
+# Cache files
+__pycache__
