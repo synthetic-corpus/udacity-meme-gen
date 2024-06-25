@@ -68,6 +68,7 @@ class IngestPDF(IngestorInterface):
     """Ingest the pdf format."""
     extenstions = ['pdf']
 
+    @classmethod
     def ingest(cls, path: str) -> list[QuoteMode]:
         """Each Realization will override."""
         pass
@@ -77,6 +78,23 @@ class IngestTXT(IngestorInterface):
     """Ingest the pdf format."""
     extenstions = ['txt']
 
+    @classmethod
     def ingest(cls, path: str) -> list[QuoteMode]:
         """Each Realization will override."""
-        pass
+        cls.check_extention(path)
+        wise_quotes = []
+        with open(path, 'r', encoding='utf-8') as text:
+            word_array = text.read()
+            word_array = word_array.split('\n')
+            print(word_array)
+            for line in word_array:
+                if len(line) > 0:  # there are some blank lines
+                    string = line.replace('"', '')
+                    splitted_quote = string.split("-")
+                    try:
+                        wise_quotes.append(
+                            QuoteMode(splitted_quote[0], splitted_quote[1])
+                        )
+                    except:
+                        print(f'Likely bad input found. Line was {line}')
+        return wise_quotes
