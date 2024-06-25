@@ -28,7 +28,7 @@ class IngestorInterface(ABC):
         pass
 
 
-class IngestCSV(IngestorInterface):
+class CSVIngestor(IngestorInterface):
     """Ingest the CSV format."""
 
     extenstions = ['csv']
@@ -46,7 +46,7 @@ class IngestCSV(IngestorInterface):
         return wise_quotes
 
 
-class IngestDOCX(IngestorInterface):
+class DocxIngestor(IngestorInterface):
     """Ingest the docx format."""
     
     extenstions = ['docx']
@@ -67,9 +67,9 @@ class IngestDOCX(IngestorInterface):
         return wise_quotes
 
 
-class IngestPDF(IngestorInterface):
+class PDFIngestor(IngestorInterface):
     """Ingest the pdf format."""
-    
+
     extenstions = ['pdf']
 
     @classmethod
@@ -78,7 +78,7 @@ class IngestPDF(IngestorInterface):
         pass
 
 
-class IngestTXT(IngestorInterface):
+class TextIngestor(IngestorInterface):
     """Ingest the pdf format."""
     
     extenstions = ['txt']
