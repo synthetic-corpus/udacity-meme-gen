@@ -7,11 +7,12 @@ from QuoteModel import QuoteMode
 
 class IngestorInterface(ABC):
     """Is the Abstract class fo ingesters."""
+    
     extenstions = []
 
     @classmethod
     def check_extention(cls, path: str) -> None:
-        """Checks the file extension for a match."""
+        """Check the file extension for a match."""
         extension = path.split('.')[-1]
         if (extension not in cls.extenstions):
             raise Exception(f'Cannot import ${path} as ',
@@ -29,6 +30,7 @@ class IngestorInterface(ABC):
 
 class IngestCSV(IngestorInterface):
     """Ingest the CSV format."""
+
     extenstions = ['csv']
 
     @classmethod
@@ -46,6 +48,7 @@ class IngestCSV(IngestorInterface):
 
 class IngestDOCX(IngestorInterface):
     """Ingest the docx format."""
+    
     extenstions = ['docx']
 
     @classmethod
@@ -66,6 +69,7 @@ class IngestDOCX(IngestorInterface):
 
 class IngestPDF(IngestorInterface):
     """Ingest the pdf format."""
+    
     extenstions = ['pdf']
 
     @classmethod
@@ -76,6 +80,7 @@ class IngestPDF(IngestorInterface):
 
 class IngestTXT(IngestorInterface):
     """Ingest the pdf format."""
+    
     extenstions = ['txt']
 
     @classmethod
