@@ -116,3 +116,28 @@ class TextIngestor(IngestorInterface):
                             (f'Line was {line}. {SyntaxError}')
                             )
         return wise_quotes
+
+
+class IngestAny(IngestorInterface):
+    """Ingests any of the four possible file types."""
+
+    extenstions = ['docx', 'csv', 'pdf', 'txt']
+
+    @classmethod
+    def ingest(cls, path: str) -> list[QuoteMode]:
+        """Ingest any vaild filetype."""
+        try:
+            cls.check_extention(path)
+        except TypeError as exc:
+            raise exc
+        extension = path.split('.')[-1]
+
+        match extension:
+            case 'docx':
+                return DocxIngestor.ingest(path)
+            case 'csv':
+                return CSVIngestor.ingest(path)
+            case 'pdf':
+                return PDFIngestor.ingest(path)
+            case 'txt':
+                return TextIngestor.ingest(path)
