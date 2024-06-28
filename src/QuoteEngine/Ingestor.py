@@ -5,6 +5,7 @@ import subprocess
 from docx import Document
 from abc import ABC, abstractmethod
 from QuoteModel import QuoteMode
+from ErrorTypes import InvalidLine, InvalidFileContent
 
 
 class IngestorInterface(ABC):
@@ -25,23 +26,43 @@ class IngestorInterface(ABC):
             pass
 
     @classmethod
-    def validate_line(cls, line) -> bool:
+    def validate_line(cls, line) -> None:
         """Validate a single line."""
-        regex_pattern = r'"([^"]*) - [a-zA-Z]'
-        if re.Match(regex_pattern, line) is None:
-            # To do throw a custom exception
-            print(f'{line} is invlaid will not be added!')
-            return False
-        return True
+        regex_pattern = r'"([^"]*)" - [a-zA-Z ]'
+        if re.match(regex_pattern, line) is None:
+            """Individual bad lines can fail w/o breaking code."""
+            raise InvalidLine(f'Line "{line}" is invalid will not be added!')
+
+        if len(line) > 100:
+            raise InvalidLine(f'Line "{line}" is too long and will not be added!')
+
+        pass
 
     @classmethod
-    def validate_csv(cls, dataframe: pandas.DataFrame):
+    def validate_csv(cls, dataframe: pandas.DataFrame) -> None:
         """Ensure the CSV file has the correct headers."""
         expected_headers = ['body', 'author']
         if dataframe.colums.tolist() != expected_headers:
-            # To do throw a custom exception
-            return False
-        return True
+            raise InvalidFileContent((
+                ".CSV file did not have expected headers!",
+                "expected body,author",
+                f'got {dataframe.columns.tolist()}'
+                ))
+
+        pass
+
+    @classmethod
+    def validate_cells(*args) -> None:
+        """Validate that length of a row <= 100."""
+        big_string = ''
+        for string in args:
+            big_string = big_string + str(string)
+        if len(big_string) > 100:
+            raise InvalidFileContent(
+                "Length of quote exceeds 100 chr. Will not be ingested."
+                )
+
+    pass
 
     @classmethod
     @abstractmethod
@@ -80,12 +101,16 @@ class DocxIngestor(IngestorInterface):
         doc = Document(path)
         wise_quotes = []
         for line in doc.paragraphs:
-            if cls.validate_input(line.text):  # Sometimes line are blank.
+            try:
+                cls.validate_line(line.text)  # Sometimes line are blank.
                 string = line.text.replace('"', '')
                 array = string.split("-")
                 wise_quotes.append(
                     QuoteMode(array[0], array[1])
                 )
+            except InvalidLine as e:
+                print(e)
+
         return wise_quotes
 
 
@@ -96,14 +121,14 @@ class PDFIngestor(IngestorInterface):
 
     @classmethod
     def ingest(cls, path: str) -> list[QuoteMode]:
-        """Ingests a pdf. Converts to text"""
+        """Ingests a pdf. Converts to text."""
         cls.check_extention(path)
         outfile_path = '../_data/tmp/pdf-as-textf.txt'
         subprocess.call([
             'pdftotext', '-enc', 'UTF-8', '-simple',
             path, outfile_path
             ])
-        # TXT expected to be compatible with
+        # TXT file expected to be compatible with
         # this other ingestor.
         return TextIngestor.ingest(outfile_path)
 
@@ -121,20 +146,16 @@ class TextIngestor(IngestorInterface):
         with open(path, 'r', encoding='utf-8') as text:
             word_array = text.read()
             word_array = word_array.split('\n')
-            print(word_array)
             for line in word_array:
-                if cls.validate_line(line):  # there are some blank lines
+                try:
+                    cls.validate_line(line)  # there are some blank lines
                     string = line.replace('"', '')
                     splitted_quote = string.split("-")
-                    try:
-                        wise_quotes.append(
-                            QuoteMode(splitted_quote[0], splitted_quote[1])
+                    wise_quotes.append(
+                        QuoteMode(splitted_quote[0], splitted_quote[1])
                         )
-                    except SyntaxError:
-                        print(
-                            ('Likely bad input found.'),
-                            (f'Line was {line}. {SyntaxError}')
-                            )
+                except (InvalidLine, IndexError) as e: 
+                    print(e)
         return wise_quotes
 
 
