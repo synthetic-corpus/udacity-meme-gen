@@ -1,4 +1,5 @@
 """This File Contains a mod classes used to ingest quotes."""
+import re
 import pandas
 import subprocess
 from docx import Document
@@ -22,6 +23,25 @@ class IngestorInterface(ABC):
                             TypeError)
         else:
             pass
+
+    @classmethod
+    def validate_line(cls, line) -> bool:
+        """Validate a single line."""
+        regex_pattern = r'"([^"]*) - [a-zA-Z]'
+        if re.Match(regex_pattern, line) is None:
+            # To do throw a custom exception
+            print(f'{line} is invlaid will not be added!')
+            return False
+        return True
+
+    @classmethod
+    def validate_csv(cls, dataframe: pandas.DataFrame):
+        """Ensure the CSV file has the correct headers."""
+        expected_headers = ['body', 'author']
+        if dataframe.colums.tolist() != expected_headers:
+            # To do throw a custom exception
+            return False
+        return True
 
     @classmethod
     @abstractmethod
@@ -60,7 +80,7 @@ class DocxIngestor(IngestorInterface):
         doc = Document(path)
         wise_quotes = []
         for line in doc.paragraphs:
-            if len(line.text) > 0:  # Sometimes line are blank.
+            if cls.validate_input(line.text):  # Sometimes line are blank.
                 string = line.text.replace('"', '')
                 array = string.split("-")
                 wise_quotes.append(
@@ -95,7 +115,7 @@ class TextIngestor(IngestorInterface):
 
     @classmethod
     def ingest(cls, path: str) -> list[QuoteMode]:
-        """Each Realization will override."""
+        """Open text file and process."""
         cls.check_extention(path)
         wise_quotes = []
         with open(path, 'r', encoding='utf-8') as text:
@@ -103,7 +123,7 @@ class TextIngestor(IngestorInterface):
             word_array = word_array.split('\n')
             print(word_array)
             for line in word_array:
-                if len(line) > 0:  # there are some blank lines
+                if cls.validate_line(line):  # there are some blank lines
                     string = line.replace('"', '')
                     splitted_quote = string.split("-")
                     try:
