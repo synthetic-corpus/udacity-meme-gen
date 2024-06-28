@@ -78,7 +78,7 @@ class PDFIngestor(IngestorInterface):
     def ingest(cls, path: str) -> list[QuoteMode]:
         """Ingests a pdf. Converts to text"""
         cls.check_extention(path)
-        outfile_path = '../_data/tmp/pdf-as-text.txt'
+        outfile_path = '../_data/tmp/pdf-as-textf.txt'
         subprocess.call([
             'pdftotext', '-enc', 'UTF-8', '-simple',
             path, outfile_path
