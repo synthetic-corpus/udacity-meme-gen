@@ -42,7 +42,7 @@ class IngestorInterface(ABC):
     def validate_csv(cls, dataframe: pandas.DataFrame) -> None:
         """Ensure the CSV file has the correct headers."""
         expected_headers = ['body', 'author']
-        if dataframe.colums.tolist() != expected_headers:
+        if dataframe.columns.tolist() != expected_headers:
             raise InvalidFileContent((
                 ".CSV file did not have expected headers!",
                 "expected body,author",
@@ -52,14 +52,14 @@ class IngestorInterface(ABC):
         pass
 
     @classmethod
-    def validate_cells(*args) -> None:
+    def validate_cells(cls, *args) -> None:
         """Validate that length of a row <= 100."""
         big_string = ''
         for string in args:
             big_string = big_string + str(string)
         if len(big_string) > 100:
             raise InvalidFileContent(
-                "Length of quote exceeds 100 chr. Will not be ingested."
+                f'Length of quote "{big_string}" exceeds 100 chr. Will not be ingested.'
                 )
 
     pass
@@ -81,11 +81,17 @@ class CSVIngestor(IngestorInterface):
         """Ingests quotes from file to a list."""
         cls.check_extention(path)
         dataframe = pandas.read_csv(path, header=0)
+        cls.validate_csv(dataframe)  # throws error based on headers
         wise_quotes = []  # to be returned
         for _, row in dataframe.iterrows():
-            wise_quotes.append(
-                QuoteMode(row['body'], row['author'])
-            )
+            try:
+                cls.validate_cells(row['body'], row['author'])
+            except (InvalidFileContent) as e:
+                print(e)
+            else:
+                wise_quotes.append(
+                    QuoteMode(row['body'], row['author'])
+                )
         return wise_quotes
 
 
