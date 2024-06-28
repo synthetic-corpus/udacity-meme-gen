@@ -1,5 +1,6 @@
 """This File Contains a mod classes used to ingest quotes."""
 import pandas
+import subprocess
 from docx import Document
 from abc import ABC, abstractmethod
 from QuoteModel import QuoteMode
@@ -7,7 +8,7 @@ from QuoteModel import QuoteMode
 
 class IngestorInterface(ABC):
     """Is the Abstract class fo ingesters."""
-    
+
     extenstions = []
 
     @classmethod
@@ -15,9 +16,10 @@ class IngestorInterface(ABC):
         """Check the file extension for a match."""
         extension = path.split('.')[-1]
         if (extension not in cls.extenstions):
-            raise Exception(f'Cannot import ${path} as ',
+            raise TypeError(f'Cannot import ${path} as ',
                             'one of these extentions!',
-                            f'{cls.extenstions}')
+                            f'{cls.extenstions}',
+                            TypeError)
         else:
             pass
 
@@ -48,7 +50,7 @@ class CSVIngestor(IngestorInterface):
 
 class DocxIngestor(IngestorInterface):
     """Ingest the docx format."""
-    
+
     extenstions = ['docx']
 
     @classmethod
@@ -74,13 +76,21 @@ class PDFIngestor(IngestorInterface):
 
     @classmethod
     def ingest(cls, path: str) -> list[QuoteMode]:
-        """Each Realization will override."""
-        pass
+        """Ingests a pdf. Converts to text"""
+        cls.check_extention(path)
+        outfile_path = '../_data/tmp/pdf-as-text.txt'
+        subprocess.call([
+            'pdftotext', '-enc', 'UTF-8', '-simple',
+            path, outfile_path
+            ])
+        # TXT expected to be compatible with
+        # this other ingestor.
+        return TextIngestor.ingest(outfile_path)
 
 
 class TextIngestor(IngestorInterface):
-    """Ingest the pdf format."""
-    
+    """Ingest the txt format."""
+
     extenstions = ['txt']
 
     @classmethod
@@ -100,6 +110,9 @@ class TextIngestor(IngestorInterface):
                         wise_quotes.append(
                             QuoteMode(splitted_quote[0], splitted_quote[1])
                         )
-                    except:
-                        print(f'Likely bad input found. Line was {line}')
+                    except SyntaxError:
+                        print(
+                            ('Likely bad input found.'),
+                            (f'Line was {line}. {SyntaxError}')
+                            )
         return wise_quotes
