@@ -5,6 +5,7 @@
 import pickle
 import hashlib
 from PIL import Image, ImageDraw, ImageFont
+from .MemeImage import MemeImage
 
 class MemeGenerator:
     """Create a Meme Geneartor.
@@ -53,7 +54,7 @@ class MemeGenerator:
 
 
     @classmethod
-    def name_by_hash(cls, image: Image):
+    def name_by_hash(cls, image: MemeImage):
         """Returns the name of the image file as a Hash.
             Useful for uniqueness.
         """
@@ -64,12 +65,12 @@ class MemeGenerator:
         return hash_name
 
     @staticmethod
-    def load_image(path):
+    def load_image(path) -> MemeImage:
         """Load an image as a file-like object."""
         image = Image.open(path)
         return image
 
-    def add_text(self, image: Image, text: str, font_name='Arial.ttf', font_size=20) -> None:
+    def add_text(self, image: MemeImage, text: str, font_name='Arial.ttf', font_size=20) -> None:
         """Add text somewhere on the image."""
         if font_size < 12 or font_size > 40:
             print(
@@ -92,7 +93,7 @@ class MemeGenerator:
         writer.text((20, 20), text, fill='white', font=font)
 
     @staticmethod
-    def scale_image(image: Image, new_width: int) -> Image:
+    def scale_image(image: MemeImage, new_width: int) -> MemeImage:
         """Scale an image by width maintaint aspect ratio"""
         height = image.height
         width = image.width
