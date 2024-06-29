@@ -4,8 +4,8 @@ import pandas
 import subprocess
 from docx import Document
 from abc import ABC, abstractmethod
-from QuoteModel import QuoteMode
-from ErrorTypes import InvalidLine, InvalidFileContent
+from .QuoteModel import QuoteModel
+from .ErrorTypes import InvalidLine, InvalidFileContent
 
 
 class IngestorInterface(ABC):
@@ -66,7 +66,7 @@ class IngestorInterface(ABC):
 
     @classmethod
     @abstractmethod
-    def ingest(cls, path: str) -> list[QuoteMode]:
+    def ingest(cls, path: str) -> list[QuoteModel]:
         """Each Realization will override."""
         pass
 
@@ -77,7 +77,7 @@ class CSVIngestor(IngestorInterface):
     extenstions = ['csv']
 
     @classmethod
-    def ingest(cls, path: str) -> list[QuoteMode]:
+    def ingest(cls, path: str) -> list[QuoteModel]:
         """Ingests quotes from file to a list."""
         cls.check_extention(path)
         dataframe = pandas.read_csv(path, header=0)
@@ -90,7 +90,7 @@ class CSVIngestor(IngestorInterface):
                 print(e)
             else:
                 wise_quotes.append(
-                    QuoteMode(row['body'], row['author'])
+                    QuoteModel(row['body'], row['author'])
                 )
         return wise_quotes
 
@@ -101,7 +101,7 @@ class DocxIngestor(IngestorInterface):
     extenstions = ['docx']
 
     @classmethod
-    def ingest(cls, path: str) -> list[QuoteMode]:
+    def ingest(cls, path: str) -> list[QuoteModel]:
         """Iterate over each docx line and create Quotes."""
         cls.check_extention(path)
         doc = Document(path)
@@ -112,7 +112,7 @@ class DocxIngestor(IngestorInterface):
                 string = line.text.replace('"', '')
                 array = string.split("-")
                 wise_quotes.append(
-                    QuoteMode(array[0], array[1])
+                    QuoteModel(array[0], array[1])
                 )
             except InvalidLine as e:
                 print(e)
@@ -126,7 +126,7 @@ class PDFIngestor(IngestorInterface):
     extenstions = ['pdf']
 
     @classmethod
-    def ingest(cls, path: str) -> list[QuoteMode]:
+    def ingest(cls, path: str) -> list[QuoteModel]:
         """Ingests a pdf. Converts to text."""
         cls.check_extention(path)
         outfile_path = '../_data/tmp/pdf-as-textf.txt'
@@ -145,7 +145,7 @@ class TextIngestor(IngestorInterface):
     extenstions = ['txt']
 
     @classmethod
-    def ingest(cls, path: str) -> list[QuoteMode]:
+    def ingest(cls, path: str) -> list[QuoteModel]:
         """Open text file and process."""
         cls.check_extention(path)
         wise_quotes = []
@@ -158,20 +158,20 @@ class TextIngestor(IngestorInterface):
                     string = line.replace('"', '')
                     splitted_quote = string.split("-")
                     wise_quotes.append(
-                        QuoteMode(splitted_quote[0], splitted_quote[1])
+                        QuoteModel(splitted_quote[0], splitted_quote[1])
                         )
                 except (InvalidLine, IndexError) as e: 
                     print(e)
         return wise_quotes
 
 
-class IngestAny(IngestorInterface):
+class Ingestor(IngestorInterface):
     """Ingests any of the four possible file types."""
 
     extenstions = ['docx', 'csv', 'pdf', 'txt']
 
     @classmethod
-    def ingest(cls, path: str) -> list[QuoteMode]:
+    def parse(cls, path: str) -> list[QuoteModel]:
         """Ingest any vaild filetype."""
         try:
             cls.check_extention(path)

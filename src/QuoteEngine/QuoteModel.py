@@ -4,7 +4,9 @@
 """
 
 
-class QuoteMode:
+class QuoteModel:
+    """Class is quote and an author."""
+
     def __init__(self, quote: str, author: str):
         self._quote = quote.strip()
         self._author = author.strip()

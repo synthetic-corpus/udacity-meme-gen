@@ -2,6 +2,7 @@ import random
 import os
 import requests
 from flask import Flask, render_template, abort, request
+from QuoteEngine import IngestAny
 
 # @TODO Import your Ingestor and MemeEngine classes
 
@@ -18,9 +19,17 @@ def setup():
                    './_data/DogQuotes/DogQuotesPDF.pdf',
                    './_data/DogQuotes/DogQuotesCSV.csv']
 
-    # TODO: Use the Ingestor class to parse all files in the
-    # quote_files variable
-    quotes = None
+    all_quotes = []
+    for file_path in quote_files:
+        try:
+            more_quotes =  IngestAny(file_path)
+        except TypeError as e:
+            print(
+                (f'Invalid file type ${file_path}'),
+                (e)
+            )
+        else:
+            all_quotes.extend(more_quotes)
 
     images_path = "./_data/photos/dog/"
 
