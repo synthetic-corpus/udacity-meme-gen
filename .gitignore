@@ -3,3 +3,4 @@
 src/_data/tmp/*.*
 testscript.py
 static/*.*
+src/**/__pycache__

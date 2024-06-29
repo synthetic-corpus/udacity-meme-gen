@@ -34,6 +34,17 @@ class MemeGenerator:
         """Add text somewhere on the image."""
         pass
 
+    @staticmethod
+    def scale_image(image: Image, new_width: int) -> Image:
+        """Scale an image by width maintaint aspect ratio"""
+        height = image.height
+        width = image.width
+        percentage = new_width / width
+        new_height = int(height * percentage)
+
+        resized = image.resize((new_width, new_height))
+        return resized
+
     def save_image(self, image):
         """Saves image to predefined out_path."""
         pass
