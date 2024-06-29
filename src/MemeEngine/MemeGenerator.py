@@ -2,7 +2,7 @@
     Its only parameter is a path of where to save 
     the generated files.
 """
-import pillow
+from PIL import Image
 
 class MemeGenerator:
     """Create a Meme Geneartor.
@@ -26,7 +26,8 @@ class MemeGenerator:
     @staticmethod
     def load_image(path):
         """Load an image as a file-like object."""
-        pass
+        image = Image.open(path)
+        return image
 
     @staticmethod
     def add_text(image, text):

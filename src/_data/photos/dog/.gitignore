@@ -1,2 +1,4 @@
 # folder is expected to filled with multimedia, not to be commited.
 *.jpg
+*.jpeg
+*.png
