@@ -2,9 +2,10 @@
     Its only parameter is a path of where to save 
     the generated files.
 """
-from random import randint
+
 import pickle
 import hashlib
+from random import randint
 from PIL import Image, ImageDraw, ImageFont
 
 class MemeGenerator:
@@ -13,8 +14,9 @@ class MemeGenerator:
         @path = the path to save files
     """
 
-    def __init__(self, out_path):
-        self._out_path = out_path
+    def __init__(self, out_folder):
+        self._out_path = out_folder
+        print(out_folder)
 
     def make_meme(
             self,
@@ -25,6 +27,33 @@ class MemeGenerator:
         """Create a meme.
             @Return file path where Meme is.
         """
+        try:
+            next_image = self.load_image(image_path)
+        except OSError as e:  # Creates a 'file not found' image
+            print(e)
+            blank_square = Image.new('RGB', (500, 500), color='white')
+            writer = ImageDraw(blank_square)
+            font = ImageFont.truetype('Arial.ttf', 40)
+            text(f'File: \n {image_path} \n not found!')
+            length = writer.textlength(text, font)
+            horizontal = (500 - length) // 2
+            vertical = 250
+            writer.text((horizontal, vertical),
+                        text,
+                        fill='black',
+                        font=font)
+            file_path = f'{self._out_path}/not-found.jpg'
+            blank_square.save(file_path)
+            next_image = self.load(file_path)
+
+        next_image = self.scale_image(next_image, width)
+        text = f'{text} - {author}'
+        self.add_text(next_image, text, font_name='Arial.ttf', font_size=30)
+        image_name = f'{self.name_by_hash(next_image)}.jpg'
+        file_path = f'{self._out_path}/{image_name}'
+        next_image.show()
+        next_image.save(file_path)
+        return file_path
 
     @classmethod
     def rightsize_text(cls, text: str, font: ImageFont, draw: ImageDraw, max_width):
