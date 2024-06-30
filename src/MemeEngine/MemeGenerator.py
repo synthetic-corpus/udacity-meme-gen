@@ -16,13 +16,13 @@ class MemeGenerator:
 
     def __init__(self, out_folder):
         self._out_path = out_folder
-        print(out_folder)
 
     def make_meme(
             self,
             image_path,
             text,
             author,
+            font='Arial.ttf',
             width=500) -> str:
         """Create a meme.
             @Return file path where Meme is.
@@ -48,7 +48,7 @@ class MemeGenerator:
 
         next_image = self.scale_image(next_image, width)
         text = f'{text} - {author}'
-        self.add_text(next_image, text, font_name='Arial.ttf', font_size=30)
+        self.add_text(next_image, text, font_name=font, font_size=30)
         image_name = f'{self.name_by_hash(next_image)}.jpg'
         file_path = f'{self._out_path}/{image_name}'
         next_image.show()

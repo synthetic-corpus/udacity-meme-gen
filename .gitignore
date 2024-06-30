@@ -2,5 +2,5 @@
 .vscode/
 src/_data/tmp/*.*
 testscript.py
-static/*.*
+src/static/*.*
 src/**/__pycache__
