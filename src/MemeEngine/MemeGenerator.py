@@ -2,10 +2,10 @@
     Its only parameter is a path of where to save 
     the generated files.
 """
+from random import randint
 import pickle
 import hashlib
 from PIL import Image, ImageDraw, ImageFont
-from .MemeImage import MemeImage
 
 class MemeGenerator:
     """Create a Meme Geneartor.
@@ -54,7 +54,7 @@ class MemeGenerator:
 
 
     @classmethod
-    def name_by_hash(cls, image: MemeImage):
+    def name_by_hash(cls, image: Image):
         """Returns the name of the image file as a Hash.
             Useful for uniqueness.
         """
@@ -65,12 +65,12 @@ class MemeGenerator:
         return hash_name
 
     @staticmethod
-    def load_image(path) -> MemeImage:
+    def load_image(path) -> Image:
         """Load an image as a file-like object."""
         image = Image.open(path)
         return image
 
-    def add_text(self, image: MemeImage, text: str, font_name='Arial.ttf', font_size=20) -> None:
+    def add_text(self, image: Image, text: str, font_name='Arial.ttf', font_size=20) -> None:
         """Add text somewhere on the image."""
         if font_size < 12 or font_size > 40:
             print(
@@ -87,13 +87,15 @@ class MemeGenerator:
                 ('Using default font Arial.ttf'),
                 (e)
                 )
-            font = ImageFont.truetype(font_name, font_size)
+            font = ImageFont.truetype('Arial.ttf', font_size)
 
-        text = MemeGenerator.rightsize_text(text, font, writer, image.width - 30 )
-        writer.text((20, 20), text, fill='white', font=font)
+        random_horizontal = randint(10, image.width // 3)  # Not too far over to right.
+        random_vertical = randint(10, int(image.height * .7))  # Never too close to the bottom.
+        text = MemeGenerator.rightsize_text(text, font, writer, image.width - 30 - random_horizontal)
+        writer.text((random_horizontal, random_vertical), text, fill='white', font=font)
 
     @staticmethod
-    def scale_image(image: MemeImage, new_width: int) -> MemeImage:
+    def scale_image(image: Image, new_width: int) -> Image:
         """Scale an image by width maintaint aspect ratio"""
         height = image.height
         width = image.width
