@@ -3,21 +3,32 @@ import os
 import requests
 from flask import Flask, render_template, abort, request
 from QuoteEngine import Ingestor
+from MemeEngine import MemeGenerator
 
 # @TODO Import your Ingestor and MemeEngine classes
 
 app = Flask(__name__)
 
-meme = MemeEngine('./static')
+meme = MemeGenerator('./static')
+
+def get_files(path: str, *extensions: str) -> list[str]:
+    """Get all files from path that
+        match specified exentions."""
+    all_files = []
+    for (path, _, files) in os.walk(path):
+        for file in files:
+            ext = file.split('.')[-1]
+            if ext in extensions:
+                file_path = os.path.join(path, file)
+                all_files.append(file_path)
+    return all_files
+
 
 
 def setup():
     """ Load all resources """
 
-    quote_files = ['./_data/DogQuotes/DogQuotesTXT.txt',
-                   './_data/DogQuotes/DogQuotesDOCX.docx',
-                   './_data/DogQuotes/DogQuotesPDF.pdf',
-                   './_data/DogQuotes/DogQuotesCSV.csv']
+    quote_files = get_files('./_data','txt','docx','csv','pdf')
 
     all_quotes = []
     for file_path in quote_files:
@@ -31,11 +42,8 @@ def setup():
         else:
             all_quotes.extend(more_quotes)
 
-    images_path = "./_data/photos/dog/"
-
-    # TODO: Use the pythons standard library os class to find all
-    # images within the images images_path directory
-    imgs = None
+    image_path = './data'
+    imgs = get_files(image_path,'jpg','jpeg','png')
 
     return quotes, imgs
 

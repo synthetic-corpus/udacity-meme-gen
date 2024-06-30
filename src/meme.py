@@ -3,9 +3,6 @@ import random
 from MemeEngine import MemeGenerator
 from QuoteEngine import QuoteModel, Ingestor
 
-# @TODO Import your Ingestor and MemeEngine classes
-
-
 def generate_meme(path=None, body=None, author=None):
     """ Generate a meme given an path and a quote """
     img = None
