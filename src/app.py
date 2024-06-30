@@ -28,7 +28,7 @@ def get_files(path: str, *extensions: str) -> list[str]:
 def setup():
     """ Load all resources """
 
-    quote_files = get_files('./_data','txt','docx','csv')
+    quote_files = get_files('./_data','txt','docx','csv','pdf')
     print(quote_files)
     all_quotes = []
     for file_path in quote_files:

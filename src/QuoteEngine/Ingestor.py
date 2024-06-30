@@ -1,4 +1,5 @@
 """This File Contains a mod classes used to ingest quotes."""
+from pathlib import Path
 import re
 import pandas
 import subprocess
@@ -129,11 +130,18 @@ class PDFIngestor(IngestorInterface):
     def ingest(cls, path: str) -> list[QuoteModel]:
         """Ingests a pdf. Converts to text."""
         cls.check_extention(path)
-        outfile_path = '../_data/tmp/pdf-as-textf.txt'
-        subprocess.call([
+        abs_path = Path(__file__).resolve().parent
+        print(abs_path)
+        outfile_path = f'{abs_path}/../_data/tmp/pdf-as-textf.txt'
+        try:
+            result = subprocess.run([
             'pdftotext', '-enc', 'UTF-8', '-simple',
-            path, outfile_path
-            ])
+            path, outfile_path,
+            ], capture_output = True)
+            print(result)
+        except Exception as e:
+            print('Subprocess bad.')
+            print(e)
         # TXT file expected to be compatible with
         # this other ingestor.
         return TextIngestor.ingest(outfile_path)
