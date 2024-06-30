@@ -31,3 +31,12 @@ class QuoteModel:
     def length(self):
         """Retrieves the length of the quote."""
         return len(f'"{self._quote}" - {self._author}')
+
+    @property
+    def body(self):
+        """Quote returned as 'body'"""
+        return self._quote
+
+    @property
+    def author(self):
+        return self._author

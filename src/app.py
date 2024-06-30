@@ -28,8 +28,8 @@ def get_files(path: str, *extensions: str) -> list[str]:
 def setup():
     """ Load all resources """
 
-    quote_files = get_files('./_data','txt','docx','csv','pdf')
-
+    quote_files = get_files('./_data','txt','docx','csv')
+    print(quote_files)
     all_quotes = []
     for file_path in quote_files:
         try:
@@ -42,10 +42,10 @@ def setup():
         else:
             all_quotes.extend(more_quotes)
 
-    image_path = './data'
+    image_path = './_data'
     imgs = get_files(image_path,'jpg','jpeg','png')
 
-    return quotes, imgs
+    return all_quotes, imgs
 
 
 quotes, imgs = setup()
@@ -55,13 +55,8 @@ quotes, imgs = setup()
 def meme_rand():
     """ Generate a random meme """
 
-    # @TODO:
-    # Use the random python standard library class to:
-    # 1. select a random image from imgs array
-    # 2. select a random quote from the quotes array
-
-    img = None
-    quote = None
+    img = random.choice(imgs)
+    quote = random.choice(quotes)
     path = meme.make_meme(img, quote.body, quote.author)
     return render_template('meme.html', path=path)
 

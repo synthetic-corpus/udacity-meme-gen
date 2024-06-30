@@ -51,7 +51,6 @@ class MemeGenerator:
         self.add_text(next_image, text, font_name=font, font_size=30)
         image_name = f'{self.name_by_hash(next_image)}.jpg'
         file_path = f'{self._out_path}/{image_name}'
-        next_image.show()
         next_image.save(file_path)
         return file_path
 
