@@ -1,9 +1,11 @@
 import random
 import os
 import requests
+from pathlib import Path
 from flask import Flask, render_template, abort, request
 from QuoteEngine import Ingestor
 from MemeEngine import MemeGenerator
+from WebEngine import ImageRequestor
 
 
 app = Flask(__name__)
@@ -69,17 +71,22 @@ def meme_form():
 @app.route('/create', methods=['POST'])
 def meme_post():
     """ Create a user defined meme """
+    params = request.form
+    abs_path = Path(__file__).resolve().parent
+    save_path = os.path.join(abs_path, 'tmp')
+    requestor = ImageRequestor(save_path)
+    try:
+        temp_file = requestor.get_file(params['image_url'])
+        static_location = meme.make_meme(
+            temp_file,
+            params['body'],
+            params['author']
+        )
+    except (UnboundLocalError):
+        print(f'Could not get image from {params['image_url']}')
+    os.remove(temp_file)
 
-    # @TODO:
-    # 1. Use requests to save the image from the image_url
-    #    form param to a temp local file.
-    # 2. Use the meme object to generate a meme using this temp
-    #    file and the body and author form paramaters.
-    # 3. Remove the temporary saved image.
-
-    path = None
-
-    return render_template('meme.html', path=path)
+    return render_template('meme.html', path=static_location)
 
 
 if __name__ == "__main__":

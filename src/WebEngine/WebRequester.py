@@ -43,14 +43,15 @@ class WebRequestor(ABC):
                     )
             else:
                 file_arrayed[0] = self.name_by_hash(r.content)
-                file_name = ''.join(file_arrayed)
+                file_name = '.'.join(file_arrayed)
+                full_path = f'{self.save_folder}/{file_name}'
                 try:
-                    with open(f'{self.save_folder}/{file_name}') as file:
+                    with open(full_path, 'wb') as file:
                         file.write(r.content)
                 except OSError as e:
-                    print('Failed to save file:')
-                    print(f'{self.save_folder}/{file_name}')
+                    print(f'Failed to save file: at {full_path}')
                     raise e  # other logic may need to handle error.
+        return full_path
 
 
 class ImageRequestor(WebRequestor):
