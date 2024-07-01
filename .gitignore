@@ -1,6 +1,7 @@
 # files to be ignored
 .vscode/
 src/_data/tmp/*.*
+src/_data/photos/*.*
 testscript.py
 src/static/*.*
 src/**/__pycache__

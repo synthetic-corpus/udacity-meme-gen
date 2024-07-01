@@ -7,7 +7,6 @@ from QuoteEngine import Ingestor
 from MemeEngine import MemeGenerator
 from WebEngine import ImageRequestor
 
-
 app = Flask(__name__)
 
 meme = MemeGenerator('./static')
