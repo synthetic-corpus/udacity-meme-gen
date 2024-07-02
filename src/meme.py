@@ -1,5 +1,7 @@
 import os
 import random
+import argparse
+from WebEngine import ImageRequestor
 from MemeEngine import MemeGenerator
 from QuoteEngine import QuoteModel, Ingestor
 
@@ -39,9 +41,29 @@ def generate_meme(path=None, body=None, author=None):
 
 
 if __name__ == "__main__":
-    # @TODO Use ArgumentParser to parse the following CLI arguments
-    # path - path to an image file
-    # body - quote body to add to the image
-    # author - quote author to add to the image
-    args = None
+    reqestor = ImageRequestor('./tmp')
+    parser = argparse.ArgumentParser(
+        description="Create ye a meme!"
+    )
+
+    parser.add_argument(
+        'path',
+        type=str,
+        help='Provide a http url to the image!'
+    )
+
+    parser.add_argument(
+        'body',
+        type=str,
+        help='Enter here the awesome quote!'
+    )
+
+    parser.add_argument(
+        'author',
+        type=str,
+        help='Enter here the author of the awesome quote.'
+    )
+
+    args = parser.parse_args()
+    args.path = reqestor.get_file(args.path)
     print(generate_meme(args.path, args.body, args.author))

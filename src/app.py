@@ -1,6 +1,5 @@
 import random
 import os
-import requests
 from pathlib import Path
 from flask import Flask, render_template, abort, request
 from QuoteEngine import Ingestor

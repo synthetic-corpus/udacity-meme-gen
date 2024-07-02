@@ -32,23 +32,23 @@ class MemeGenerator:
         except OSError as e:  # Creates a 'file not found' image
             print(e)
             blank_square = Image.new('RGB', (500, 500), color='white')
-            writer = ImageDraw(blank_square)
+            writer = ImageDraw.Draw(blank_square)
             font = ImageFont.truetype('Arial.ttf', 40)
-            text(f'File: \n {image_path} \n not found!')
+            message = f'File: \n {image_path} \n not found!'
             length = writer.textlength(text, font)
             horizontal = (500 - length) // 2
             vertical = 250
             writer.text((horizontal, vertical),
-                        text,
+                        message,
                         fill='black',
                         font=font)
             file_path = f'{self._out_path}/not-found.jpg'
             blank_square.save(file_path)
-            next_image = self.load(file_path)
+            next_image = self.load_image(file_path)
 
         next_image = self.scale_image(next_image, width)
         text = f'{text} - {author}'
-        self.add_text(next_image, text, font_name=font, font_size=30)
+        self.add_text(next_image, text, font_name='Arial.ttf', font_size=30)
         image_name = f'{self.name_by_hash(next_image)}.jpg'
         file_path = f'{self._out_path}/{image_name}'
         next_image.save(file_path)
