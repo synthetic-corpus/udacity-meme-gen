@@ -1,5 +1,5 @@
 """"This class creates a meme generator object.
-    Its only parameter is a path of where to save 
+    Its only parameter is a path of where to save
     the generated files.
 """
 
@@ -7,6 +7,7 @@ import pickle
 import hashlib
 from random import randint
 from PIL import Image, ImageDraw, ImageFont
+
 
 class MemeGenerator:
     """Create a Meme Geneartor.
@@ -55,7 +56,10 @@ class MemeGenerator:
         return file_path
 
     @classmethod
-    def rightsize_text(cls, text: str, font: ImageFont, draw: ImageDraw, max_width):
+    def rightsize_text(cls, text: str,
+                       font: ImageFont,
+                       draw: ImageDraw,
+                       max_width):
         """Adds line breaks at max width."""
         words = text.split()
         lines = []
@@ -65,7 +69,9 @@ class MemeGenerator:
             w_width = draw.textlength(word, font=font)
             if current_width + w_width <= max_width:
                 current_line.append(word)
-                current_width = w_width + draw.textlength(' ', font=font) + current_width
+                current_width = w_width + \
+                    draw.textlength(' ', font=font) + \
+                    current_width
             else:
                 new_line = ' '.join(current_line)
                 new_line = new_line + " \n"
@@ -78,8 +84,6 @@ class MemeGenerator:
             lines.append(new_line)
         multi_line_text = "".join(lines)
         return multi_line_text
-
-
 
     @classmethod
     def name_by_hash(cls, image: Image):
@@ -98,7 +102,8 @@ class MemeGenerator:
         image = Image.open(path)
         return image
 
-    def add_text(self, image: Image, text: str, font_name='Arial.ttf', font_size=20) -> None:
+    def add_text(self, image: Image, text: str,
+                 font_name='Arial.ttf', font_size=20) -> None:
         """Add text somewhere on the image."""
         if font_size < 12 or font_size > 40:
             print(
@@ -117,10 +122,15 @@ class MemeGenerator:
                 )
             font = ImageFont.truetype('Arial.ttf', font_size)
 
-        random_horizontal = randint(10, image.width // 3)  # Not too far over to right.
-        random_vertical = randint(10, int(image.height * .7))  # Never too close to the bottom.
-        text = MemeGenerator.rightsize_text(text, font, writer, image.width - 30 - random_horizontal)
-        writer.text((random_horizontal, random_vertical), text, fill='white', font=font)
+        # Not too close to the right.
+        r_horizontal = randint(10, image.width // 3)
+        # Never too close to the bottom.
+        r_vertical = randint(10, int(image.height * .7))
+        max_w = image.width - 30 - r_horizontal
+        text = MemeGenerator.rightsize_text(text, font,
+                                            writer, max_w)
+        writer.text((r_horizontal, r_vertical),
+                    text, fill='white', font=font)
 
     @staticmethod
     def scale_image(image: Image, new_width: int) -> Image:
