@@ -8,7 +8,7 @@ There is media content commited in this repo. This project requires images and s
 
 ## Adding Media Content the Fast Way
 
-If you wish for a quick start, run:
+If you wish for a quick start, run:  
 `Python3 /src/WebEngine/Initializer.py`
 This will download a collection of photos and text documents into the _data folder from a public s3 bucket.
 
@@ -48,8 +48,8 @@ This will load the application which can then be viewed in the browser at localh
 
 ## Make Memes with CLI
 
-To learn how to make a Meme from the CLI run,
-Python3 src/meme.py --help
+To learn how to make a Meme from the CLI run,  
+'Python3 src/meme.py --help'
 
 And that's it! Thanks for reviewing the project.
 
