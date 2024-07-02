@@ -48,8 +48,11 @@ if __name__ == "__main__":
     quotes, images = setup()
     _reqestor = ImageRequestor('./tmp')
     parser = argparse.ArgumentParser(
-        description="Create ye a meme!"
-    )
+        description= 'Create ye a meme! \
+            Please define all three options.\
+            Otherwise you get a random meme! \
+            CLI will print the location of your meme.'
+        )
 
     parser.add_argument(
         '--path',
