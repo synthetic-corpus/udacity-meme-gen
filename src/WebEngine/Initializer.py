@@ -1,7 +1,7 @@
 """ This function is repsonsible for downloading 
 content from a public s3 bucket."""
 import pandas
-from WebEngine import ImageRequestor, TextRequestor
+from WebRequester import ImageRequestor, TextRequestor
 
 image_requests = ImageRequestor('../_data/photos')
 text_request = TextRequestor('../_data/SimpleLines')

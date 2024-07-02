@@ -131,14 +131,13 @@ class PDFIngestor(IngestorInterface):
         """Ingests a pdf. Converts to text."""
         cls.check_extention(path)
         abs_path = Path(__file__).resolve().parent
-        print(abs_path)
         outfile_path = f'{abs_path}/../_data/tmp/pdf-as-textf.txt'
         try:
             result = subprocess.run([
             'pdftotext', '-enc', 'UTF-8', '-simple',
             path, outfile_path,
             ], capture_output = True)
-            print(result)
+            print(result) # pdf can be finicky
         except Exception as e:
             print('Subprocess bad.')
             print(e)
