@@ -8,11 +8,12 @@ from MemeEngine import MemeGenerator
 from QuoteEngine import QuoteModel, Ingestor
 from setup import setup
 
+
 def generate_meme(path=None, body=None, author=None):
     """ Generate a meme given an path and a quote """
     img = None
     quote = None
-    print('path is ',path)
+    print('path is ', path)
     if path is None:
         images = "./_data/photos/dog/"
         imgs = []
@@ -22,7 +23,7 @@ def generate_meme(path=None, body=None, author=None):
         img = random.choice(imgs)
     else:
         img = path[0]
-        print('ing gen_men',img)
+        print('ing gen_men', img)
 
     if body is None:
         quote_files = ['./_data/DogQuotes/DogQuotesTXT.txt',
@@ -48,7 +49,7 @@ if __name__ == "__main__":
     quotes, images = setup()
     _reqestor = ImageRequestor('./tmp')
     parser = argparse.ArgumentParser(
-        description= 'Create ye a meme! \
+        description='Create ye a meme! \
             Please define all three options.\
             Otherwise you get a random meme! \
             CLI will print the location of your meme.'
@@ -73,10 +74,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    if (not args.body
-        or not args.quote
-        or not args.author
-        ):
+    if (not args.body or not args.quote
+            or not args.author):
         rand_quote = random.choice(quotes)
         rand_image = random.choice(images)
         args.path = rand_image
