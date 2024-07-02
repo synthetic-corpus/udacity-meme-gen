@@ -1,10 +1,12 @@
 import os
 import random
 import argparse
-from pathlib import Path
+import random
+
 from WebEngine import ImageRequestor
 from MemeEngine import MemeGenerator
 from QuoteEngine import QuoteModel, Ingestor
+from setup import setup
 
 def generate_meme(path=None, body=None, author=None):
     """ Generate a meme given an path and a quote """
@@ -43,29 +45,41 @@ def generate_meme(path=None, body=None, author=None):
 
 
 if __name__ == "__main__":
+    quotes, images = setup()
     _reqestor = ImageRequestor('./tmp')
     parser = argparse.ArgumentParser(
         description="Create ye a meme!"
     )
 
     parser.add_argument(
-        'path',
+        '--path',
         type=str,
         help='Provide a http url to the image!'
     )
 
     parser.add_argument(
-        'body',
+        '--body',
         type=str,
         help='Enter here the awesome quote!'
     )
 
     parser.add_argument(
-        'author',
+        '--author',
         type=str,
         help='Enter here the author of the awesome quote.'
     )
 
     args = parser.parse_args()
-    args.path = _reqestor.get_file(args.path)
+    if (not args.body
+        or not args.quote
+        or not args.author
+        ):
+        rand_quote = random.choice(quotes)
+        rand_image = random.choice(images)
+        args.path = rand_image
+        args.author = rand_quote.author
+        args.body = rand_quote.body
+
+    else:
+        args.path = _reqestor.get_file(args.path)
     print(generate_meme([args.path], args.body, args.author))

@@ -2,50 +2,13 @@ import random
 import os
 from pathlib import Path
 from flask import Flask, render_template, abort, request
-from QuoteEngine import Ingestor
 from MemeEngine import MemeGenerator
 from WebEngine import ImageRequestor
+from setup import setup
 
 app = Flask(__name__)
 
 meme = MemeGenerator('./static')
-
-def get_files(path: str, *extensions: str) -> list[str]:
-    """Get all files from path that
-        match specified exentions."""
-    all_files = []
-    for (path, _, files) in os.walk(path):
-        for file in files:
-            ext = file.split('.')[-1]
-            if ext in extensions:
-                file_path = os.path.join(path, file)
-                all_files.append(file_path)
-    return all_files
-
-
-
-def setup():
-    """ Load all resources """
-
-    quote_files = get_files('./_data','txt','docx','csv','pdf')
-    print(quote_files)
-    all_quotes = []
-    for file_path in quote_files:
-        try:
-            more_quotes =  Ingestor.parse(file_path)
-        except TypeError as e:
-            print(
-                (f'Invalid file type ${file_path}'),
-                (e)
-            )
-        else:
-            all_quotes.extend(more_quotes)
-
-    image_path = './_data'
-    imgs = get_files(image_path,'jpg','jpeg','png')
-
-    return all_quotes, imgs
-
 
 quotes, imgs = setup()
 
