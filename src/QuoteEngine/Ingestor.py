@@ -29,7 +29,7 @@ class IngestorInterface(ABC):
     @classmethod
     def validate_line(cls, line) -> None:
         """Validate a single line."""
-        regex_pattern = r'"([^"]*)" - [a-zA-Z ]'
+        regex_pattern = r'([^"\n\r]*) - [a-zA-Z ]'
         if re.match(regex_pattern, line) is None:
             """Individual bad lines can fail w/o breaking code."""
             raise InvalidLine(f'Line "{line}" is invalid will not be added!')
@@ -109,8 +109,9 @@ class DocxIngestor(IngestorInterface):
         wise_quotes = []
         for line in doc.paragraphs:
             try:
-                cls.validate_line(line.text)  # Sometimes line are blank.
-                string = line.text.replace('"', '')
+                pattern = r'["“”„‟‶‷＂″＇＂]'
+                string = re.sub(pattern, '', line.text)
+                cls.validate_line(string)  # Sometimes line are blank.
                 array = string.split("-")
                 wise_quotes.append(
                     QuoteModel(array[0], array[1])
@@ -161,6 +162,8 @@ class TextIngestor(IngestorInterface):
             word_array = word_array.split('\n')
             for line in word_array:
                 try:
+                    pattern = r'["“”„‟‶‷＂″＇＂]' # because pdfs
+                    line = re.sub(pattern, '', line)
                     cls.validate_line(line)  # there are some blank lines
                     string = line.replace('"', '')
                     splitted_quote = string.split("-")
