@@ -32,10 +32,12 @@ class IngestorInterface(ABC):
         regex_pattern = r'([^"\n\r]*) - [a-zA-Z ]'
         if re.match(regex_pattern, line) is None:
             """Individual bad lines can fail w/o breaking code."""
-            raise InvalidLine(f'Line "{line}" is invalid will not be added!')
+            raise InvalidLine(
+                f'Line "{line}" is invalid will not be added!')
 
         if len(line) > 100:
-            raise InvalidLine(f'Line "{line}" is too long and will not be added!')
+            raise InvalidLine(
+                f'Line "{line}" is too long to be added!')
 
         pass
 
@@ -60,8 +62,8 @@ class IngestorInterface(ABC):
             big_string = big_string + str(string)
         if len(big_string) > 100:
             raise InvalidFileContent(
-                f'Length of quote "{big_string}" exceeds 100 chr. Will not be ingested.'
-                )
+                f'Length of quote "{big_string}" exceeds 100 chr. \
+                    Will not be ingested.')
 
     pass
 
@@ -135,10 +137,10 @@ class PDFIngestor(IngestorInterface):
         outfile_path = f'{abs_path}/../_data/tmp/pdf-as-textf.txt'
         try:
             result = subprocess.run([
-            'pdftotext', '-enc', 'UTF-8', '-simple',
-            path, outfile_path,
-            ], capture_output = True)
-            print(result) # pdf can be finicky
+                'pdftotext', '-enc', 'UTF-8', '-simple',
+                path, outfile_path,
+            ], capture_output=True)
+            print(result)
         except Exception as e:
             print('Subprocess bad.')
             print(e)
@@ -162,7 +164,7 @@ class TextIngestor(IngestorInterface):
             word_array = word_array.split('\n')
             for line in word_array:
                 try:
-                    pattern = r'["“”„‟‶‷＂″＇＂]' # because pdfs
+                    pattern = r'["“”„‟‶‷＂″＇＂]'  # because pdfs
                     line = re.sub(pattern, '', line)
                     cls.validate_line(line)  # there are some blank lines
                     string = line.replace('"', '')
@@ -170,7 +172,7 @@ class TextIngestor(IngestorInterface):
                     wise_quotes.append(
                         QuoteModel(splitted_quote[0], splitted_quote[1])
                         )
-                except (InvalidLine, IndexError) as e: 
+                except (InvalidLine, IndexError) as e:
                     print(e)
         return wise_quotes
 
