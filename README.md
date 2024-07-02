@@ -32,9 +32,9 @@ The author name must be letters and spaces only. Any characters can go before th
 
 .csv files must be formatted like this:
 
-`body,author
-my fancy quote,author name
-more inspiring words,smart person`
+`body,author  
+my fancy quote,author name  
+more inspiring words,smart person  `
 
 The text files can be placed anywhere in the *_data* folder to be ingested.
 
