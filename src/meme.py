@@ -1,6 +1,7 @@
 import os
 import random
 import argparse
+from pathlib import Path
 from WebEngine import ImageRequestor
 from MemeEngine import MemeGenerator
 from QuoteEngine import QuoteModel, Ingestor
@@ -9,7 +10,7 @@ def generate_meme(path=None, body=None, author=None):
     """ Generate a meme given an path and a quote """
     img = None
     quote = None
-
+    print('path is ',path)
     if path is None:
         images = "./_data/photos/dog/"
         imgs = []
@@ -19,6 +20,7 @@ def generate_meme(path=None, body=None, author=None):
         img = random.choice(imgs)
     else:
         img = path[0]
+        print('ing gen_men',img)
 
     if body is None:
         quote_files = ['./_data/DogQuotes/DogQuotesTXT.txt',
@@ -35,13 +37,13 @@ def generate_meme(path=None, body=None, author=None):
             raise Exception('Author Required if Body is Used')
         quote = QuoteModel(body, author)
 
-    meme = MemeGenerator('./tmp')
+    meme = MemeGenerator('./static')
     path = meme.make_meme(img, quote.body, quote.author)
     return path
 
 
 if __name__ == "__main__":
-    reqestor = ImageRequestor('./tmp')
+    _reqestor = ImageRequestor('./tmp')
     parser = argparse.ArgumentParser(
         description="Create ye a meme!"
     )
@@ -65,5 +67,5 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    args.path = reqestor.get_file(args.path)
-    print(generate_meme(args.path, args.body, args.author))
+    args.path = _reqestor.get_file(args.path)
+    print(generate_meme([args.path], args.body, args.author))
