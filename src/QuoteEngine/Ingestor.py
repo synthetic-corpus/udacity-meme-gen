@@ -191,12 +191,12 @@ class Ingestor(IngestorInterface):
             raise exc
         extension = path.split('.')[-1]
 
-        match extension:
-            case 'docx':
-                return DocxIngestor.ingest(path)
-            case 'csv':
-                return CSVIngestor.ingest(path)
-            case 'pdf':
-                return PDFIngestor.ingest(path)
-            case 'txt':
-                return TextIngestor.ingest(path)
+        methods = {
+            'docx': DocxIngestor.ingest,
+            'pdf': PDFIngestor.ingest,
+            'csv': CSVIngestor.ingest,
+            'txt': TextIngestor.ingest
+        }
+
+        choosen_func = methods[extension]
+        return choosen_func(path)
