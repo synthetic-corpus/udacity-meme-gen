@@ -74,7 +74,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    if (not args.body or not args.quote
+    if (not args.body or not args.body
             or not args.author):
         rand_quote = random.choice(quotes)
         rand_image = random.choice(images)
@@ -85,3 +85,4 @@ if __name__ == "__main__":
     else:
         args.path = _reqestor.get_file(args.path)
     print(generate_meme([args.path], args.body, args.author))
+    os.remove(args.path)

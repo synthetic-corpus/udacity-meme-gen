@@ -44,7 +44,8 @@ def meme_post():
             params['author']
         )
     except (UnboundLocalError):
-        print(f'Could not get image from {params['image_url']}')
+        bad_url = params['image_url']
+        print(f'Could not get image from {bad_url}')
     os.remove(temp_file)
 
     return render_template('meme.html', path=static_location)

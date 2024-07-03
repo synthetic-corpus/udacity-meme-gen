@@ -37,6 +37,7 @@ class WebRequestor(ABC):
         r = requests.get(url)
         if r.status_code == 200:
             file_arrayed = Path(url).name.split('.')
+            print(file_arrayed)
             if file_arrayed[1] not in self.valid_file_types:
                 raise TypeError(
                     f'{file_arrayed[1]} is an invalid type for this request!'

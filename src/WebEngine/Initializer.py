@@ -10,7 +10,8 @@ text_request = TextRequestor('../_data/SimpleLines')
 def init_from_s3():
     data_frame = pandas.read_csv('./init.csv', header=0)
     for _, row in data_frame.iterrows():
-        print(f'importing: {row['url']}')
+        next_import = row['url']
+        print(f'importing: {next_import}')
         if row['type'] == 'img':
             image_requests.get_file(row['url'])
         else:
