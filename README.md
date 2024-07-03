@@ -4,7 +4,9 @@
 
 This is a capstone project for Udacity’s Intermediate Python course. Project can be cloned locally ran. It will generate a browse app that create memes with quotes based on user-supplied images and text files.
 
-There is media content commited in this repo. This project requires images and several text files to work.
+There is no media content commited in this repo. This project requires images and several text files to work.
+
+There are only two text files commit to this document. Both are found in the _data/miniquotes folder.
 
 ## Adding Media Content the Fast Way
 
