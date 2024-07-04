@@ -8,6 +8,8 @@ There is no media content commited in this repo. This project requires images an
 
 There are only two text files commit to this document. Both are found in the _data/miniquotes folder.
 
+>Note: This project works in Python 3.9 or later. Please test accordingly!
+
 ## Adding Media Content the Fast Way
 
 If you wish for a quick start, run:  
@@ -53,5 +55,20 @@ This will load the application which can then be viewed in the browser at localh
 To learn how to make a Meme from the CLI run,  
 'Python3 src/meme.py --help'
 
-And that's it! Thanks for reviewing the project.
+# Python Modules
 
+The three main folders for modules are MemeEngine, QuoteEngine, and WebEngine.
+
+MemeEngine is responsible for actually creating a meme, and will depend on QuoteEngine and WebEngine.
+
+QuoteEngine is reponsbile for ingest *local* files and turning them into collections of QuoteModel instances. The QuoteModel class is within QuoteEngine.
+
+WebEngine is reponsible for making web request for both text files and image. A short script to initialize this project with text and media data can be found in this module.
+
+# Other Important folders
+
+_data is the folder where both text and image content is expected to be found. Exact locations of the files do not matter, as long as they are in this folder.
+
+The static folder is for finished memes.
+
+And that's it, please enjoy this project!.
