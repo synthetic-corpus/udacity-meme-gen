@@ -4,7 +4,18 @@
 """
 import os
 from QuoteEngine import Ingestor
+from WebEngine import init_from_s3
 
+def verify_result(func, path: str, *extensions) -> list[str]:
+    """Wraps a get file function.
+        If nothing is there, will run init_from_s3
+    """
+    all_files = func(path, *extensions)
+    if len(all_files) == 0:
+        init_from_s3()
+        all_files = func(path, *extensions)
+        return all_files
+    return all_files
 
 def get_files(path: str, *extensions: str) -> list[str]:
     """Get all files from path that
@@ -37,6 +48,6 @@ def setup():
             all_quotes.extend(more_quotes)
 
     image_path = './_data'
-    imgs = get_files(image_path, 'jpg', 'jpeg', 'png')
+    imgs = verify_result(get_files, image_path, 'jpg', 'jpeg', 'png')
 
     return all_quotes, imgs
