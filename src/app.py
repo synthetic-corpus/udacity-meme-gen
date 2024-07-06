@@ -1,7 +1,7 @@
 import random
 import os
 from pathlib import Path
-from flask import Flask, render_template, abort, request
+from flask import Flask, render_template, make_response, request
 from MemeEngine import MemeGenerator
 from WebEngine import ImageRequestor, BadWebRequest
 from setup import setup
@@ -46,7 +46,8 @@ def meme_post():
     except (BadWebRequest, OSError):
         bad_url = params['image_url']
         print(f'Could not get image from {bad_url}')
-        return render_template('meme_from_error.html')
+        return render_template('meme_form_error.html',
+                               error_message='bad url in request'), 400
     os.remove(temp_file)
 
     return render_template('meme.html', path=static_location)

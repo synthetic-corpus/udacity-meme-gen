@@ -3,7 +3,7 @@ import random
 import argparse
 import random
 
-from WebEngine import ImageRequestor
+from WebEngine import ImageRequestor, BadWebRequest
 from MemeEngine import MemeGenerator
 from QuoteEngine import QuoteModel, Ingestor
 from setup import setup
@@ -23,7 +23,6 @@ def generate_meme(path=None, body=None, author=None):
         img = random.choice(imgs)
     else:
         img = path[0]
-        print('ing gen_men', img)
 
     if body is None:
         quote_files = ['./_data/DogQuotes/DogQuotesTXT.txt',
@@ -83,6 +82,10 @@ if __name__ == "__main__":
         args.body = rand_quote.body
 
     else:
-        args.path = _reqestor.get_file(args.path)
-    print(generate_meme([args.path], args.body, args.author))
-    os.remove(args.path)
+        try:
+            args.path = _reqestor.get_file(args.path)
+            print('Youre meme can be found at: ',
+                  generate_meme([args.path], args.body, args.author))
+            os.remove(args.path)
+        except (BadWebRequest):
+            print('problem with the URL! Cannot make MEME!')

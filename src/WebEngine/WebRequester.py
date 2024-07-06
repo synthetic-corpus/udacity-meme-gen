@@ -57,9 +57,9 @@ class WebRequestor(ABC):
                 except OSError as e:
                     print(f'Failed to save file: at {full_path}')
                     raise e  # other logic may need to handle error.
+            return full_path
         else:
             raise BadWebRequest(f'Problem with url: {url}')
-        return full_path
 
 
 class ImageRequestor(WebRequestor):
