@@ -13,10 +13,12 @@ There are only two text files commit to this document. Both are found in the _da
 ## Adding Media Content the Fast Way
 
 If you wish for a quick start, run:  
-`Python3 /src/WebEngine/Initializer.py`
+`Python3 /src/Initializer.py`
 This will download a collection of photos and text documents into the _data folder from a public s3 bucket.
 
 Note, that some lines in these test documents will fail to ingest. This is expected because ensuring that things failed expectedly was part of my testing. You also may find that photos are *sideways*. That is an s3 and image metadata problem, but is out of scope of this project.
+
+Alternately, if the program detects that there is no photo content in ./_data, then Initializer.py will run automatically.
 
 ## Adding Images Manually
 
