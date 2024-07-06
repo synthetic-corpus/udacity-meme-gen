@@ -6,6 +6,7 @@ import os
 from QuoteEngine import Ingestor
 from Initializer import init_from_s3
 
+
 def verify_result(func, path: str, *extensions) -> list[str]:
     """Wraps a get file function.
         If nothing is there, will run init_from_s3
@@ -18,6 +19,7 @@ def verify_result(func, path: str, *extensions) -> list[str]:
         all_files = func(path, *extensions)
         return all_files
     return all_files
+
 
 def get_files(path: str, *extensions: str) -> list[str]:
     """Get all files from path that
