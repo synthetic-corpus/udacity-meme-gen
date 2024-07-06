@@ -1,10 +1,10 @@
 """ This function is repsonsible for downloading
 content from a public s3 bucket."""
 import pandas
-from WebRequester import ImageRequestor, TextRequestor
+from WebEngine import ImageRequestor, TextRequestor
 
-image_requests = ImageRequestor('../_data/photos')
-text_request = TextRequestor('../_data/SimpleLines')
+image_requests = ImageRequestor('./_data/photos')
+text_request = TextRequestor('./_data/SimpleLines')
 
 
 def init_from_s3():

@@ -4,7 +4,7 @@
 """
 import os
 from QuoteEngine import Ingestor
-from WebEngine import init_from_s3
+from Initializer import init_from_s3
 
 def verify_result(func, path: str, *extensions) -> list[str]:
     """Wraps a get file function.
