@@ -17,5 +17,5 @@ def init_from_s3():
         else:
             text_request.get_file(row['url'])
 
-
-init_from_s3()
+if __name__ == "__main__":
+    init_from_s3()
