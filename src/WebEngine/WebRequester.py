@@ -9,6 +9,11 @@ from pathlib import Path
 from abc import ABC
 
 
+class BadWebRequest(FileNotFoundError):
+    """Thrown when URL are bad """
+    pass
+
+
 class WebRequestor(ABC):
     """ Contains Methods for Downloading Files """
     valid_file_types = []
@@ -52,6 +57,8 @@ class WebRequestor(ABC):
                 except OSError as e:
                     print(f'Failed to save file: at {full_path}')
                     raise e  # other logic may need to handle error.
+        else:
+            raise BadWebRequest(f'Problem with url: {url}')
         return full_path
 
 
