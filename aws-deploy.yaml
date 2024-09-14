@@ -1,0 +1,177 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy a single EC2 instance behind an ALB in the default VPC.
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    Description: Type of EC2 instance
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+      - t3a.micro
+    ConstraintDescription: Must be a valid EC2 instance type.
+
+  VPCId:
+    Type: String
+    Description: Which VPC this is to be deployed under
+
+  SubnetId1:
+    Type: String
+    Description: a Public subnet that is already set up with VPC.
+
+  SubnetId2:
+    Type: String
+    Description: A secondary public Subnet already set up within the VPC
+
+  RepositoryURL:
+    Type: String
+    Description: This is URL to a git repo/branch that code is expected to be pulled from
+    Default: https://github.com/synthetic-corpus/udacity-meme-gen/tree/clouddeploy
+
+Resources:
+  # Security Group for the ALB
+  ALBSecurityGroup:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic to the ALB
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+
+  # Security Group for the EC2 instance
+  EC2SecurityGroup:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow inbound HTTP traffic from the ALB
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+
+  # Application Load Balancer
+  MyLoadBalancer:
+    DeletionPolicy: Delete
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: my-load-balancer
+      Subnets:
+        - !Ref SubnetId1
+        - !Ref SubnetId2
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+      Type: application
+
+  # Attach the target group to the load balancer
+  MyListenerRule:
+    DeletionPolicy: Delete
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref MyTargetGroup
+      Conditions:
+        - Field: host-header
+          HostHeaderConfig:
+            Values:
+              - '*'
+      ListenerArn: !Ref MyListener
+      Priority: 1
+
+  # Load Balancer Listener
+  MyListener:
+    DeletionPolicy: Delete
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            StatusCode: '200'
+            ContentType: text/plain
+            MessageBody: 'Hello from Load Balancer'
+      LoadBalancerArn: !Ref MyLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  # Target Group for the ALB
+  MyTargetGroup:
+    DeletionPolicy: Delete
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPCId
+      Targets:
+        - Id: !Ref MyEC2Instance
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: '80'
+      HealthCheckPath: /
+
+  # EC2 Instance
+  MyEC2Instance:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: ami-0c55b159cbfafe1f0  # Use a valid AMI ID for your region
+      SecurityGroups:
+        - !Ref EC2SecurityGroup
+      SubnetId: !Ref SubnetId1
+      UserData:
+        # clones my public repo and install Python
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # Update packages
+          yum update -y
+          
+          # Install git and Python 3
+          yum install -y git python3
+          
+          # Clone the repository
+          git clone ${RepositoryURL} /home/ec2-user/myapp
+          
+          # Navigate to the application directory
+          cd /home/ec2-user/myapp/src
+          
+          # Run the Python commands
+          pip3 install -r requirements.txt &
+          python3 app.py
+
+  # EC2 Auto Scaling Group
+  MyAutoScalingGroup:
+    DeletionPolicy: Delete
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MinSize: '1'
+      MaxSize: '1'
+      DesiredCapacity: '1'
+      VPCZoneIdentifier:
+        - !Ref SubnetId1
+        - !Ref SubnetId2
+      LaunchConfigurationName: !Ref MyLaunchConfiguration
+
+  # Launch Configuration
+  MyLaunchConfiguration:
+    DeletionPolicy: Delete
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-0c55b159cbfafe1f0
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+        - !Ref EC2SecurityGroup
+
+Outputs:
+  LoadBalancerDNSName:
+    Description: DNS Name of the Load Balancer
+    Value: !GetAtt MyLoadBalancer.DNSName
