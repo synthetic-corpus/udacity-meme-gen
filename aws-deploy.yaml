@@ -13,21 +13,25 @@ Parameters:
     ConstraintDescription: Must be a valid EC2 instance type.
 
   VPCId:
-    Type: String
+    Type: AWS::EC2::VPC::Id
     Description: Which VPC this is to be deployed under
 
   SubnetId1:
-    Type: String
+    Type: AWS::EC2::Subnet::Id
     Description: a Public subnet that is already set up with VPC.
 
   SubnetId2:
-    Type: String
+    Type: AWS::EC2::Subnet::Id
     Description: A secondary public Subnet already set up within the VPC
 
   RepositoryURL:
     Type: String
     Description: This is URL to a git repo/branch that code is expected to be pulled from
     Default: https://github.com/synthetic-corpus/udacity-meme-gen/tree/clouddeploy
+
+  amiID:
+    Type: AWS::EC2::Image::Id
+    Description: the AMI id to be used. Code assumes this AMI has Python3 >= 3.9 and pip3 installed
 
 Resources:
   # Security Group for the ALB
@@ -39,9 +43,9 @@ Resources:
       VpcId: !Ref VPCId
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
-          CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          CidrIp: '0.0.0.0/0'
 
   # Security Group for the EC2 instance
   EC2SecurityGroup:
@@ -55,7 +59,7 @@ Resources:
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !Ref ALBSecurityGroup
-        - IpProtocol: tcp
+        - IpProtocol: tcp # This rule allows AWS SSH browser tool to work in the us-west-2 region.
           FromPort: 22
           ToPort: 22
           CidrIp: '18.237.140.160/29'
@@ -78,7 +82,7 @@ Resources:
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
-          Value: '60'
+          Value: 60
       Type: application
 
   # Attach the target group to the load balancer
@@ -105,7 +109,7 @@ Resources:
       DefaultActions:
         - Type: fixed-response
           FixedResponseConfig:
-            StatusCode: '200'
+            StatusCode: 200
             ContentType: text/plain
             MessageBody: 'Hello from Load Balancer'
       LoadBalancerArn: !Ref MyLoadBalancer
@@ -123,7 +127,7 @@ Resources:
       Targets:
         - Id: !Ref MyEC2Instance
       HealthCheckProtocol: HTTP
-      HealthCheckPort: '80'
+      HealthCheckPort: 80
       HealthCheckPath: /
 
   # EC2 Instance
@@ -132,7 +136,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref InstanceType
-      ImageId: ami-0c55b159cbfafe1f0  # Use a valid AMI ID for your region
+      ImageId: !Ref amiID
       SecurityGroups:
         - !Ref EC2SecurityGroup
       SubnetId: !Ref SubnetId1
@@ -161,9 +165,9 @@ Resources:
     DeletionPolicy: Delete
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      MinSize: '1'
-      MaxSize: '1'
-      DesiredCapacity: '1'
+      MinSize: 1
+      MaxSize: 5
+      DesiredCapacity: 2
       VPCZoneIdentifier:
         - !Ref SubnetId1
         - !Ref SubnetId2
@@ -174,7 +178,7 @@ Resources:
     DeletionPolicy: Delete
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      ImageId: ami-0c55b159cbfafe1f0
+      ImageId: !Ref amiID
       InstanceType: !Ref InstanceType
       SecurityGroups:
         - !Ref EC2SecurityGroup
