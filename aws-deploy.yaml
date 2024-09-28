@@ -24,10 +24,15 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
     Description: A secondary public Subnet already set up within the VPC
 
+  RepoBranch:
+    Type: String
+    Default: clouddeploy
+    Description: Which branch to clone the rep from
+
   RepositoryURL:
     Type: String
     Description: This is URL to a git repo/branch that code is expected to be pulled from
-    Default: https://github.com/synthetic-corpus/udacity-meme-gen/tree/clouddeploy
+    Default: https://github.com/synthetic-corpus/udacity-meme-gen
 
   amiID:
     Type: AWS::EC2::Image::Id
@@ -177,7 +182,7 @@ Resources:
           Arn: !GetAtt EC2InstanceProfile.Arn
         InstanceType: !Ref InstanceType
         ImageId: !Ref amiID
-        SecurityGroups:
+        SecurityGroupIds:
           - !Ref EC2SecurityGroup
         UserData:
           # clones my public repo and install Python
@@ -226,11 +231,14 @@ Resources:
             # Install git and Python 3
             yum install -y git
             # Clone the repository
-            git clone ${RepositoryURL} /home/ec2-user/myapp
+            git clone -b ${RepoBranch} ${RepositoryURL} /home/ec2-user/myapp
             # Navigate to the application directory
-            cd /home/ec2-user/myapp/src
+            cd /home/ec2-user/myapp
+            python3 -m venv .venv
+            source .venv/bin/activate
             # Run the Python commands
-            pip3 install -r requirements.txt &
+            pip3 install -r requirements.txt
+            cd /home/ec2-user/myapp/src
             python3 app.py
 
 Outputs:
