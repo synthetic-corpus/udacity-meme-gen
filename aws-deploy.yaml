@@ -109,11 +109,53 @@ Resources:
       HealthCheckPort: 80
       HealthCheckPath: /
 
+  # Cloud Watch Group
+  CloudWatchLogsGroup:
+    DeletionPolicy: Delete
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "${AWS::StackName}-logs"
+      RetentionInDays: 7
+
+  EC2InstanceProfile:
+    DeletionPolicy: Delete
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+        - !Ref EC2Role
+
+  # EC2 Role to Write to CloudWatch
+  EC2Role:
+    DeletionPolicy: Delete
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "ec2.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "CloudWatchLogsPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "logs:PutLogEvents"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:DescribeLogStreams"
+                  - "logs:DescribeLogGroups"
+                Resource: "*"
+
   # EC2 Instance
   MyEC2Instance:
     DeletionPolicy: Delete
     Type: AWS::EC2::Instance
     Properties:
+      IamInstanceProfile: !Ref EC2InstanceProfile
       InstanceType: !Ref InstanceType
       ImageId: !Ref amiID
       SecurityGroupIds:
@@ -125,9 +167,32 @@ Resources:
           #!/bin/bash
           # Update packages
           yum update -y
+          yum install -y amazon-cloudwatch-agent
+          # Create CloudWatch Agent config file (replace with your configuration)
+          cat <<EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+          {
+            "logs": {
+              "logs_collected": {
+                "files": {
+                  "collect_list": [
+                    {
+                      "file_path": "/var/log/messages",
+                      "log_group_name": "${AWS::StackName}-logs",
+                      "log_stream_name": "{instance_id}/messages",
+                      "timestamp_format": "%b %d %H:%M:%S"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+          EOF
+          # Start CloudWatch Agent
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
           
           # Install git and Python 3
-          yum install -y git python3
+          yum install -y git
           
           # Clone the repository
           git clone ${RepositoryURL} /home/ec2-user/myapp
