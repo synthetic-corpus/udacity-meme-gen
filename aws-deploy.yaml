@@ -150,60 +150,6 @@ Resources:
                   - "logs:DescribeLogGroups"
                 Resource: "*"
 
-  # EC2 Instance
-  MyEC2Instance:
-    DeletionPolicy: Delete
-    Type: AWS::EC2::Instance
-    Properties:
-      IamInstanceProfile: !Ref EC2InstanceProfile
-      InstanceType: !Ref InstanceType
-      ImageId: !Ref amiID
-      SecurityGroupIds:
-        - !Ref EC2SecurityGroup
-      SubnetId: !Ref SubnetId1
-      UserData:
-        # clones my public repo and install Python
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          # Update packages
-          yum update -y
-          yum install -y amazon-cloudwatch-agent
-          # Create CloudWatch Agent config file (replace with your configuration)
-          cat <<EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-          {
-            "logs": {
-              "logs_collected": {
-                "files": {
-                  "collect_list": [
-                    {
-                      "file_path": "/var/log/messages",
-                      "log_group_name": "${AWS::StackName}-logs",
-                      "log_stream_name": "{instance_id}/messages",
-                      "timestamp_format": "%b %d %H:%M:%S"
-                    }
-                  ]
-                }
-              }
-            }
-          }
-          EOF
-          # Start CloudWatch Agent
-          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-
-          
-          # Install git and Python 3
-          yum install -y git
-          
-          # Clone the repository
-          git clone ${RepositoryURL} /home/ec2-user/myapp
-          
-          # Navigate to the application directory
-          cd /home/ec2-user/myapp/src
-          
-          # Run the Python commands
-          pip3 install -r requirements.txt &
-          python3 app.py
-
   # EC2 Auto Scaling Group
   MyAutoScalingGroup:
     DeletionPolicy: Delete
@@ -217,17 +163,75 @@ Resources:
       VPCZoneIdentifier:
         - !Ref SubnetId1
         - !Ref SubnetId2
-      LaunchConfigurationName: !Ref MyLaunchConfiguration
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
 
   # Launch Configuration
-  MyLaunchConfiguration:
+  MyLaunchTemplate:
     DeletionPolicy: Delete
-    Type: AWS::AutoScaling::LaunchConfiguration
+    Type: AWS::EC2::LaunchTemplate
     Properties:
-      ImageId: !Ref amiID
-      InstanceType: !Ref InstanceType
-      SecurityGroups:
-        - !Ref EC2SecurityGroup
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt EC2InstanceProfile.Arn
+        InstanceType: !Ref InstanceType
+        ImageId: !Ref amiID
+        SecurityGroups:
+          - !Ref EC2SecurityGroup
+        UserData:
+          # clones my public repo and install Python
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            # Update packages
+            yum update -y
+            yum install -y amazon-cloudwatch-agent
+            # Create CloudWatch Agent config file (replace with your configuration)
+            cat <<EOF >> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+            '{
+              "logs": {
+                "logs_collected": {
+                  "files": {
+                    "collect_list": [
+                      {
+                        "file_path": "/proc/self/fd/1",
+                        "log_group_name": "/aws/ec2/stdout",
+                        "log_stream_name": "{instance_id}/stdout",
+                        "log_stream_name_key": "hostname",
+                        "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                        "multi_line_start_pattern": "{timestamp_format}"
+                      },
+                      {
+                        "file_path": "/proc/self/fd/2",
+                        "log_group_name": "/aws/ec2/stderr",
+                        "log_stream_name": "{instance_id}/stderr",
+                        "log_stream_name_key": "hostname",
+                        "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                        "multi_line_start_pattern": "{timestamp_format}"
+                      },
+                      {
+                        "file_path": "/var/log/messages",
+                        "log_group_name": "${AWS::StackName}-logs",
+                        "log_stream_name": "{instance_id}/messages",
+                        "timestamp_format": "%b %d %H:%M:%S"
+                      }
+                    ]
+                  }
+                }
+              }
+            }'
+            EOF
+            # Start CloudWatch Agent
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+            # Install git and Python 3
+            yum install -y git
+            # Clone the repository
+            git clone ${RepositoryURL} /home/ec2-user/myapp
+            # Navigate to the application directory
+            cd /home/ec2-user/myapp/src
+            # Run the Python commands
+            pip3 install -r requirements.txt &
+            python3 app.py
 
 Outputs:
   LoadBalancerDNSName:
