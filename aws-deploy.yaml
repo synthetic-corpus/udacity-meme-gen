@@ -236,6 +236,8 @@ Resources:
             git clone -b ${RepoBranch} ${RepositoryURL} /home/ec2-user/myapp
             # Navigate to the application directory
             cd /home/ec2-user/myapp
+            # load fonts
+            python3 src/initfonts.py 
             python3 -m venv .venv
             source .venv/bin/activate
             # Run the Python commands
