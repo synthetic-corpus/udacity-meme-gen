@@ -229,7 +229,7 @@ Resources:
             # Start CloudWatch Agent
             /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
             # PDF to text for a CLI command
-            yum install - y poppler-utils
+            yum install -y poppler-utils
             # Install git and Python 3
             yum install -y git
             # Clone the repository
@@ -239,7 +239,8 @@ Resources:
             python3 -m venv .venv
             source .venv/bin/activate
             # Run the Python commands
-            pip3 install -r requirements.txt
+            sudo yum -y install python-pip
+            python3 -m pip install -r requirements.txt
             cd /home/ec2-user/myapp/src
             python3 app.py
 
