@@ -229,7 +229,7 @@ Resources:
             # Start CloudWatch Agent
             /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
             # PDF to text for a CLI command
-            yum install poppler-utils
+            yum install - y poppler-utils
             # Install git and Python 3
             yum install -y git
             # Clone the repository
