@@ -3,8 +3,7 @@
     the generated files.
 """
 
-import pickle
-import hashlib
+import uuid
 from random import randint
 from PIL import Image, ImageDraw, ImageFont
 
@@ -50,7 +49,7 @@ class MemeGenerator:
         next_image = self.scale_image(next_image, width)
         text = f'"{text}" - {author}'
         self.add_text(next_image, text, font_name='Arial.ttf', font_size=30)
-        image_name = f'{self.name_by_hash(next_image)}.jpg'
+        image_name = f'{uuid.uuid4()}.jpg'
         file_path = f'{self._out_path}/{image_name}'
         next_image.save(file_path)
         return file_path
@@ -84,17 +83,6 @@ class MemeGenerator:
             lines.append(new_line)
         multi_line_text = "".join(lines)
         return multi_line_text
-
-    @classmethod
-    def name_by_hash(cls, image: Image):
-        """Returns the name of the image file as a Hash.
-            Useful for uniqueness.
-        """
-        image_bytes = pickle.dumps(image)
-        hasher = hashlib.sha256()
-        hasher.update(image_bytes)
-        hash_name = hasher.hexdigest()
-        return hash_name
 
     @staticmethod
     def load_image(path) -> Image:
