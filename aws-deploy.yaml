@@ -2,6 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Deploy a single EC2 instance behind an ALB in the default VPC.
 
 Parameters:
+  SourceS3:
+    Type: String
+    Description: This is the *pre-configured* private s3 bucket the EC2 instances will access. Values must be an ARN.
+
   InstanceType:
     Type: String
     Default: t2.micro
@@ -142,6 +146,17 @@ Resources:
               Service: "ec2.amazonaws.com"
             Action: "sts:AssumeRole"
       Policies:
+        - PolicyName: "ReadWriteS3"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:ListBucket"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                Resource:
+                  - !Ref SourceS3
         - PolicyName: "CloudWatchLogsPolicy"
           PolicyDocument:
             Version: "2012-10-17"
