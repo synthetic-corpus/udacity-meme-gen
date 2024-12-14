@@ -6,13 +6,13 @@ from PIL import Image, ImageDraw
 from io import BytesIO
 import random
 import os
-import cloudlogger
+from cloudlogger import log_wrapper
 
 
 class S3tester:
     """Creates a connection to an S3 Bucket"""
     """Handles Read/Write to said bucket"""
-    @cloudlogger.log_wrapper
+    @log_wrapper
     def __init__(self, bucket_name, region_name):
         """Takes in the name of the bucket and its region"""
         self.my_s3 = boto3.resource('s3', region_name=region_name)
@@ -43,7 +43,7 @@ class S3tester:
         image.save(file_stream, format='jpeg')
         s3_object.put(Body=file_stream.getvalue())
 
-    @cloudlogger.log_wrapper
+    @log_wrapper
     def get_sample(self, size=3):
         """ gets some random source files """
         objects = list(self.my_bucket.objects.filter(Prefix='_sources'))
