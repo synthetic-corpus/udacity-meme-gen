@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw
 from io import BytesIO
 import random
 import os
-from cloudlogger import log_wrapper
+from cloudlogger import log_wrapper, cloud_logger
 
 
 class S3tester:
@@ -60,3 +60,7 @@ for i in random_images:
     image, name = s3tester.get_image(i)
     grey = image.convert('L')
     s3tester.write_image(grey, name)
+
+cloud_logger.info("Info message to the cloud?")
+cloud_logger.error("error message to the cloud?")
+cloud_logger.exception("Excpetion message to the cloud?")
