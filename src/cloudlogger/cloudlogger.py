@@ -27,6 +27,7 @@ def log_wrapper(func):
         try:
             result = func(*args, **kwargs)
             logger.info(f'Exiting {func.__name__} with result: {result}')
+            return result
         except Exception as e:
             logger.error(f'Exception in {func.__name__}: {e}')
             raise
