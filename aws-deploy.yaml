@@ -4,7 +4,12 @@ Description: Deploy a single EC2 instance behind an ALB in the default VPC.
 Parameters:
   SourceS3:
     Type: String
-    Description: This is the *pre-configured* private s3 bucket the EC2 instances will access. Values must be an ARN.
+    Description: This is the bucket name
+
+  SourceRegion:
+    Type: String
+    Description: The region your bucket is in
+    Default: 'us-west-2'
 
   InstanceType:
     Type: String
@@ -204,6 +209,8 @@ Resources:
           Fn::Base64: !Sub |
             #!/bin/bash
             # Update packages
+            echo "export S3_BUCKET = ${SourceS3}" >> /etc/profile
+            echo "export SOURCE_REGION = ${SourceRegion}" >> /etc/profile
             yum update -y
             yum install -y amazon-cloudwatch-agent
             # Create CloudWatch Agent config file (replace with your configuration)
