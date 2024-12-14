@@ -2,6 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Deploy a single EC2 instance behind an ALB in the default VPC.
 
 Parameters:
+  SourceS3Arn:
+    Type: String
+    Description: The Full ARN of the S3 Bucket
+
   SourceS3:
     Type: String
     Description: This is the bucket name
@@ -161,7 +165,7 @@ Resources:
                   - "s3:GetObject"
                   - "s3:PutObject"
                 Resource:
-                  - !Ref SourceS3
+                  - !Ref SourceS3Arn
         - PolicyName: "CloudWatchLogsPolicy"
           PolicyDocument:
             Version: "2012-10-17"

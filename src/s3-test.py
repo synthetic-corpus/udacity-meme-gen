@@ -24,15 +24,14 @@ class S3tester:
         array = [file_name[:pivot], suffix, '.jpeg']
         return ''.join(array)
 
-    def get_image(self, object_name):
+    def get_image(self, object_key):
         """ Gets file from the s3 and returns it as an Image """
-        object_key = f'_sources/{object_name}'
         s3_object = self.my_bucket.Object(object_key)
         response = s3_object.get()
         file_stream = response['Body']
         this_image = Image.open(file_stream)
         """ return the original name of the file too """
-        return (this_image, object_name)
+        return (this_image, object_key.split("/")[1])
 
     def write_image(self, image: Image, object_name):
         new_name = s3tester.rename_file(file_name=object_name)
@@ -44,8 +43,8 @@ class S3tester:
 
     def get_sample(self, size=3):
         """ gets some random source files """
-        keys = self.my_s3.objects.filter()
-        sources = [key for key in keys if '_source' in key]
+        objects = list(self.my_bucket.objects.filter(Prefix='_sources'))
+        sources = [o.key for o in objects]
         random.shuffle(sources)
         return sources[:size]
 
