@@ -1,0 +1,1 @@
+from cloudlogger import log_wrapper

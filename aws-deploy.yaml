@@ -183,7 +183,8 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:DescribeLogStreams"
                   - "logs:DescribeLogGroups"
-                Resource: "*"
+                Resource: 
+                  - !GetAtt CloudWatchLogsGroup.Arn
 
   # EC2 Auto Scaling Group
   MyAutoScalingGroup:
