@@ -8,6 +8,7 @@ import watchtower
 import logging
 import functools
 
+logging.basicConfig(level=logging.INFO)
 
 def log_wrapper(func):
     """ Configures a cloud watcher """
