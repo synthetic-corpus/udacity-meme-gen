@@ -1,1 +1,1 @@
-from cloudlogger import *
+from .cloudlogger import log_wrapper
