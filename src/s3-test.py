@@ -25,8 +25,8 @@ for i in some_files:
 
     try:
         print(f'Making Blurry: {name}')
-        blurry = image.filter(ImageFilter.BoxBlur(raduis=12))
-        blurry_name = f'${ID}-blurry.jpeg'
+        blurry = image.filter(ImageFilter.BoxBlur(radius=12))
+        blurry_name = f'{ID}-blurry.jpeg'
         queue.append((blurry, blurry_name))
         grey = image.convert('L')
     except Exception as e:
@@ -35,7 +35,7 @@ for i in some_files:
     try:
         print(f'Making Grey: {name}')
         grey = image.convert("1")
-        grey_name = f'${ID}-grey.jpeg'
+        grey_name = f'{ID}-grey.jpeg'
         queue.append((grey, grey_name))
     except Exception as e:
         print(e)
@@ -44,7 +44,7 @@ for i in some_files:
         print(f'Making Loud: {name}')
         enhancer = ImageEnhance.Color(image)
         loud = enhancer.enhance(2.0)
-        loud_name = f'${ID}-loud.jpeg'
+        loud_name = f'{ID}-loud.jpeg'
         queue.append((loud, loud_name))
     except Exception as e:
         print(e)
