@@ -4,7 +4,8 @@ It is expected it should handle ImageFile objects without
 saving them locally to a drive as a file unless specifically
 requested"""
 import boto3
-from PIL import Image, ImageFile
+from PIL import Image
+from PIL.ImageFile import ImageFile
 from io import BytesIO
 from cloudlogger import log_wrapper, cloud_logger
 
@@ -29,7 +30,7 @@ class S3engine:
             cloud_logger.error(f'{type(e).__name__} - {e}')
 
     @log_wrapper
-    def get_image(self, object_key) -> tuple[ImageFile.ImageFile, str]:
+    def get_image(self, object_key) -> tuple[ImageFile, str]:
         """Returns an ImageFile from ans s3 file."""
         try:
             s3_object = self.my_bucket.Object(object_key)
@@ -51,5 +52,7 @@ class S3engine:
             file_stream = BytesIO()
             image.save(file_stream, format='jpeg')
             new_s3_object.put(Body=file_stream.getvalue())
+            # TODO at this point, the file should return the public URL
+            # of the image.
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
