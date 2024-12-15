@@ -6,6 +6,7 @@ import uuid
 import random
 from S3engine import S3engine
 from PIL import Image, ImageFile
+from cloudlogger import log_wrapper
 
 s3engine = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
 
@@ -15,11 +16,12 @@ some_files = [f[0] for f in some_files]
 random.shuffle(some_files)
 some_files = some_files[:5]
 
+@log_wrapper
 def make_noisy(image: ImageFile):
     print('processing noise!')
     noise_image = image.copy()
     noise_image = noise_image.convert('RGBA')
-    noise_layer = Image.effect_noise(image.size, 1)
+    noise_layer = Image.effect_noise(size=noise_image.size, sigma=1)
     noise_image = Image.blend(noise_image, noise_layer, 0.3)
     return noise_image
 

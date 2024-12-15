@@ -48,7 +48,7 @@ class S3engine:
         try:
             object_key = f'{folder}/{object_name}'
             new_s3_object = self.my_bucket.Object(object_key)
-            file_stream = BytesIO
+            file_stream = BytesIO()
             image.save(file_stream, format='jpeg')
             new_s3_object.put(Body=file_stream.getvalue())
         except Exception as e:
