@@ -222,7 +222,7 @@ Resources:
             # Update packages
             echo "export S3_BUCKET=${SourceS3}" >> /etc/profile
             echo "export SOURCE_REGION=${SourceRegion}" >> /etc/profile
-            echo "export LOG_GROUP=${!GetAtt CloudWatchLogsGroup.LogGroupName}"
+            echo "export LOG_GROUP=${!GetAtt CloudWatchLogsGroup.LogGroupName}" >> /etc/profile
             echo $LOG_GROUP
             yum update -y
             yum install -y amazon-cloudwatch-agent
