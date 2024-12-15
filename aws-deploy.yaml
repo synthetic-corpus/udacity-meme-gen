@@ -223,6 +223,7 @@ Resources:
             echo "export S3_BUCKET=${SourceS3}" >> /etc/profile
             echo "export SOURCE_REGION=${SourceRegion}" >> /etc/profile
             echo "export LOG_GROUP=${!GetAtt CloudWatchLogsGroup.LogGroupName}"
+            echo $LOG_GROUP
             yum update -y
             yum install -y amazon-cloudwatch-agent
             # Create CloudWatch Agent config file (replace with your configuration)

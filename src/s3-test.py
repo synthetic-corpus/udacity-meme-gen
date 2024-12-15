@@ -1,66 +1,41 @@
 """" This is a test file.
 It exists soley to see if these ec2 instance can accesss s3"""
 
-import boto3
-from PIL import Image, ImageDraw
-from io import BytesIO
-import random
 import os
-from cloudlogger import log_wrapper, cloud_logger
+import uuid
+import random
+from S3engine import S3engine
+from PIL import Image, ImageFile
+
+s3engine = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
+
+# Grab a Random Samples of the Files
+some_files = s3engine.list_content()
+some_files = [f[0] for f in some_files]
+random.shuffle(some_files)
+some_files = some_files[:5]
+
+def make_noisy(image: ImageFile):
+    print('processing noise!')
+    noise_image = image.copy()
+    noise_image = noise_image.convert('RGBA')
+    noise_layer = Image.effect_noise(image.size, 1)
+    noise_image = Image.blend(noise_image, noise_layer, 0.3)
+    return noise_image
 
 
-class S3tester:
-    """Creates a connection to an S3 Bucket"""
-    """Handles Read/Write to said bucket"""
-    @log_wrapper
-    def __init__(self, bucket_name, region_name):
-        """Takes in the name of the bucket and its region"""
-        self.my_s3 = boto3.resource('s3', region_name=region_name)
-        self.my_bucket = self.my_s3.Bucket(bucket_name)
-
-    @staticmethod
-    def rename_file(file_name, suffix='_processed'):
-        """appends a suffix to a file name"""
-        """e.g. 'myfile.jpeg -> myfile_processed.jpeg"""
-        pivot = file_name.rfind('.')
-        array = [file_name[:pivot], suffix, '.jpeg']
-        return ''.join(array)
-
-    def get_image(self, object_key):
-        """ Gets file from the s3 and returns it as an Image """
-        s3_object = self.my_bucket.Object(object_key)
-        response = s3_object.get()
-        file_stream = response['Body']
-        this_image = Image.open(file_stream)
-        """ return the original name of the file too """
-        return (this_image, object_key.split("/")[1])
-
-    def write_image(self, image: Image, object_name):
-        new_name = s3tester.rename_file(file_name=object_name)
-        object_key = f'_images/{new_name}'
-        s3_object = self.my_bucket.Object(object_key)
-        file_stream = BytesIO()
-        image.save(file_stream, format='jpeg')
-        s3_object.put(Body=file_stream.getvalue())
-
-    @log_wrapper
-    def get_sample(self, size=3):
-        """ gets some random source files """
-        objects = list(self.my_bucket.objects.filter(Prefix='_sources'))
-        sources = [o.key for o in objects]
-        random.shuffle(sources)
-        return sources[:size]
-
-
-bucket, region = os.environ['SOURCE_S3'], os.environ['SOURCE_REGION']
-s3tester = S3tester(bucket, region)
-random_images = s3tester.get_sample()
-
-for i in random_images:
-    image, name = s3tester.get_image(i)
-    grey = image.convert('L')
-    s3tester.write_image(grey, name)
-
-cloud_logger.info("Info message to the cloud?")
-cloud_logger.error("error message to the cloud?")
-cloud_logger.exception("Excpetion message to the cloud?")
+# Turns some of the files grey and then saves them
+for i in some_files:
+    try:
+        image, name = s3engine.get_image(i)
+        grey = image.convert('L')
+        noise = make_noisy(image)
+        ID = uuid.uuid4()
+        name_grey = f'{id}-grey.jpeg'
+        name_noisy = f'{id}-noise.jpeg'
+        s3engine.put_image(image=grey, object_name=name_grey)
+        print(f'Put for ${name_grey} succeeded!')
+        s3engine.put_image(image=noise, object_name=name_noisy)
+        print(f'Put for ${name_noisy} succeeded!')
+    except Exception as e:
+        print(e)
