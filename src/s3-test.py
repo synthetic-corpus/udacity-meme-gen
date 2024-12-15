@@ -31,8 +31,8 @@ for i in some_files:
         grey = image.convert('L')
         noise = make_noisy(image)
         ID = uuid.uuid4()
-        name_grey = f'{id}-grey.jpeg'
-        name_noisy = f'{id}-noise.jpeg'
+        name_grey = f'{ID}-grey.jpeg'
+        name_noisy = f'{ID}-noise.jpeg'
         s3engine.put_image(image=grey, object_name=name_grey)
         print(f'Put for ${name_grey} succeeded!')
         s3engine.put_image(image=noise, object_name=name_noisy)
