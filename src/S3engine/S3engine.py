@@ -20,13 +20,13 @@ class S3engine:
         """gets all content from specific s3 folder"""
         """Returns both a key and file name per file"""
         try:
-            objects = list(self.my_bucket.objects.filters(Prefix=folder))
+            objects = list(self.my_bucket.objects.filter(Prefix=folder))
             sources = [(o.key, o.key.split('/')[1]) for o in objects]
             message = f'Returning a list for {folder}. Sample {sources[:2]}'
             cloud_logger.info(message)
             return sources
         except Exception as e:
-            cloud_logger.error(f'error! {e}')
+            cloud_logger.error(f'{type(e).__name__} - {e}')
 
     @log_wrapper
     def get_image(self, object_key) -> tuple[ImageFile.ImageFile, str]:
@@ -39,7 +39,7 @@ class S3engine:
             """ return the original name of the file too """
             return (this_image, object_key.split("/")[1])
         except Exception as e:
-            cloud_logger.error(f'error! {e}')
+            cloud_logger.error(f'{type(e).__name__} - {e}')
 
     @log_wrapper
     def put_image(self, image: ImageFile,
@@ -52,4 +52,4 @@ class S3engine:
             image.save(file_stream, format='jpeg')
             new_s3_object.put(Body=file_stream.getvalue())
         except Exception as e:
-            cloud_logger.error(f'error! {e}')
+            cloud_logger.error(f'{type(e).__name__} - {e}')
