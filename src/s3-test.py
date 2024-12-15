@@ -7,8 +7,10 @@ import random
 from S3engine import S3engine
 from PIL import Image, ImageFile, ImageFilter, ImageEnhance
 from cloudlogger import log_wrapper
+from DatabaseAccess import DatabaseAccess
 
 s3engine = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
+db = DatabaseAccess()
 
 # Grab a Random Samples of the Files
 some_files = s3engine.list_content()
@@ -48,6 +50,10 @@ for i in some_files:
         queue.append((loud, loud_name))
     except Exception as e:
         print(e)
+
+    # Simple DB test
+    outputs = [t[1] for t in queue]
+    db.record_processing(id=ID, source=name, ouputs=outputs)
 
 for t in queue:
     """Save them to Images """
