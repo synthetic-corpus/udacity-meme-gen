@@ -5,7 +5,7 @@ import os
 import uuid
 import random
 from S3engine import S3engine
-from PIL import Image, ImageFile
+from PIL import Image, ImageFile, ImageFilter, ImageEnhance
 from cloudlogger import log_wrapper
 
 s3engine = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
@@ -16,28 +16,39 @@ some_files = [f[0] for f in some_files]
 random.shuffle(some_files)
 some_files = some_files[:5]
 
-@log_wrapper
-def make_noisy(image: ImageFile):
-    print('processing noise!')
-    noise_image = image.copy()
-    noise_image = noise_image.convert('RGBA')
-    noise_layer = Image.effect_noise(size=noise_image.size, sigma=1)
-    noise_image = Image.blend(noise_image, noise_layer, 0.3)
-    return noise_image
 
-
+queue = []
 # Turns some of the files grey and then saves them
 for i in some_files:
+    image, name = s3engine.get_image(i)
+    ID = uuid.uuid4()
+
     try:
-        image, name = s3engine.get_image(i)
+        print(f'Making Blurry: {name}')
+        blurry = image.filter(ImageFilter.BoxBlur(raduis=12))
+        blurry_name = f'${ID}-blurry.jpeg'
+        queue.append((blurry, blurry_name))
         grey = image.convert('L')
-        noise = make_noisy(image)
-        ID = uuid.uuid4()
-        name_grey = f'{ID}-grey.jpeg'
-        name_noisy = f'{ID}-noise.jpeg'
-        s3engine.put_image(image=grey, object_name=name_grey)
-        print(f'Put for ${name_grey} succeeded!')
-        s3engine.put_image(image=noise, object_name=name_noisy)
-        print(f'Put for ${name_noisy} succeeded!')
     except Exception as e:
         print(e)
+
+    try:
+        print(f'Making Grey: {name}')
+        grey = image.convert("1")
+        grey_name = f'${ID}-grey.jpeg'
+        queue.append((grey, grey_name))
+    except Exception as e:
+        print(e)
+
+    try:
+        print(f'Making Loud: {name}')
+        enhancer = ImageEnhance.Color(image)
+        loud = enhancer.enhance(2.0)
+        loud_name = f'${ID}-loud.jpeg'
+        queue.append((loud, loud_name))
+    except Exception as e:
+        print(e)
+
+for t in queue:
+    """Save them to Images """
+    s3engine.put_image(image=t[0],object_name=t[1])
