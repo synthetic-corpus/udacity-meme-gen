@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 """ Configures a handler for arbirtraty messages """
 client = boto3.client('logs', 'us-west-2')
-group_name = os.environ['LOG_GROUP']
+group_name = 'memegen-logs-live'
 handler = watchtower.CloudWatchLogHandler(
     log_group_name=group_name,
     boto3_client=client,
@@ -24,7 +24,7 @@ cloud_logger.addHandler(handler)
 def log_wrapper(func):
     """ Configures a cloud watcher """
     client = boto3.client('logs', 'us-west-2')
-    group_name = os.environ['LOG_GROUP']
+    group_name = 'memegen-logs-live'
     handler = watchtower.CloudWatchLogHandler(
         log_group_name=group_name,
         boto3_client=client,
