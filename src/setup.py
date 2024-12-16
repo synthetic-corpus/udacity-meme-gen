@@ -55,3 +55,23 @@ def setup():
             all_quotes.extend(more_quotes)
 
     return all_quotes, imgs
+
+def setup_text():
+    """ Sets up quotes only """
+    data_path = './_data'
+
+    quote_files = get_files(data_path, 'txt', 'docx', 'csv', 'pdf')
+    print(quote_files)
+    all_quotes = []
+    for file_path in quote_files:
+        try:
+            more_quotes = Ingestor.parse(file_path)
+        except TypeError as e:
+            print(
+                (f'Invalid file type ${file_path}'),
+                (e)
+            )
+        else:
+            all_quotes.extend(more_quotes)
+
+    return all_quotes
