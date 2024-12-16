@@ -284,6 +284,9 @@ Resources:
             sudo yum -y install python-pip
             python3 -m pip install -r requirements.txt
             cd /home/ec2-user/myapp/src
+            export S3_BUCKET=${SourceS3}
+            export SOURCE_REGION=${SourceRegion}
+            export LOG_GROUP=memegen-logs-live
             python3 app.py
 
 Outputs:

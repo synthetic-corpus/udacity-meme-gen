@@ -31,7 +31,7 @@ class S3engine:
 
     @log_wrapper
     def get_image(self, object_key) -> tuple[ImageFile, str]:
-        """Returns an ImageFile from ans s3 file."""
+        """Returns an ImageFile and original name of file."""
         try:
             s3_object = self.my_bucket.Object(object_key)
             response = s3_object.get()

@@ -26,14 +26,14 @@ def meme_rand():
     img_key_tup = random.choice(imgs)
     quote = random.choice(quotes)
     try:
-        image_obj = s3access.get_image(img_key_tup[0])
+        image_obj, _ = s3access.get_image(img_key_tup[0])
         processed_image, image_name = meme.make_meme(image_obj, quote.body,
                                                      quote.author, uuid=ID)
         s3access.put_image(processed_image, image_name)
         return render_template('meme.html', path='bad http TODO here')
     except Exception as e:
         oops = f'{type(e).__name__} Exception: - {e}'
-        cloud_logger(oops)
+        cloud_logger.info(oops)
 
 
 @app.route('/create', methods=['GET'])
