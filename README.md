@@ -2,7 +2,9 @@
 
 # Intro
 
-This is a capstone project for Udacity’s Intermediate Python course. Project can be cloned locally ran. It will generate a browse app that create memes with quotes based on user-supplied images and text files.
+This branch was the final submission for Udacity's Intermediate Python course. It be cloned locally ran, and the only branch where it is expected to work. It will generate a browse app that create memes with quotes based on user-supplied images and text files.
+
+This branch also will not be maintained. It exists here for a record of what the project looked liek *before* significant changes to get it to work in AWS.
 
 There is no media content commited in this repo. This project requires images and several text files to work.
 
