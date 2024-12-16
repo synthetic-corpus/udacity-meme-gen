@@ -51,6 +51,11 @@ Parameters:
     Type: AWS::EC2::Image::Id
     Description: the AMI id to be used. Code assumes this AMI has Python3 >= 3.9 and pip3 installed
 
+  CWLogGroupName:
+    Type: String
+    Description: the Log Group Name set up in Cloud Formation
+    Default: memegen-logs
+
 Resources:
   # Security Group for the ALB
   ALBSecurityGroup:
@@ -132,7 +137,7 @@ Resources:
     DeletionPolicy: Delete
     Type: "AWS::Logs::LogGroup"
     Properties:
-      LogGroupName: !Sub "${AWS::StackName}-logs"
+      LogGroupName: memegen-logs-live
       RetentionInDays: 7
 
   EC2InstanceProfile:
@@ -222,7 +227,7 @@ Resources:
             # Update packages
             echo "export S3_BUCKET=${SourceS3}" >> /etc/profile
             echo "export SOURCE_REGION=${SourceRegion}" >> /etc/profile
-            echo "export LOG_GROUP=${!GetAtt CloudWatchLogsGroup.LogGroupName}" >> /etc/profile
+            echo "export LOG_GROUP='memegen-logs-live'" >> /etc/profile
             echo $LOG_GROUP
             yum update -y
             yum install -y amazon-cloudwatch-agent

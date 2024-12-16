@@ -4,6 +4,6 @@ src/_data/photos/*.*
 testscript.py
 src/**/__pycache__
 .flask/
-
+src/_fonts/*
 # A folder where the developer might keep local notes.
 notes/ 
