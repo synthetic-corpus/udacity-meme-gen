@@ -3,3 +3,5 @@
 src/_data/photos/*.*
 testscript.py
 src/**/__pycache__
+.flask
+src/_fonts/*
