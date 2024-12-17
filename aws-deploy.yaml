@@ -5,10 +5,12 @@ Parameters:
   SourceS3Arn:
     Type: String
     Description: The Full ARN of the S3 Bucket
+    Default: arn:aws:s3:::whatever your bucket is
 
   SourceS3:
     Type: String
     Description: This is the bucket name
+    Default: whatever your bucket name is
 
   SourceRegion:
     Type: String
@@ -28,14 +30,17 @@ Parameters:
   VPCId:
     Type: AWS::EC2::VPC::Id
     Description: Which VPC this is to be deployed under
+    Default: vpc-....
 
   SubnetId1:
     Type: AWS::EC2::Subnet::Id
     Description: a Public subnet that is already set up with VPC.
+    Default: subnet-...
 
   SubnetId2:
     Type: AWS::EC2::Subnet::Id
     Description: A secondary public Subnet already set up within the VPC
+    Default: subnet-...
 
   RepoBranch:
     Type: String
@@ -50,6 +55,7 @@ Parameters:
   amiID:
     Type: AWS::EC2::Image::Id
     Description: the AMI id to be used. Code assumes this AMI has Python3 >= 3.9 and pip3 installed
+    Default: ami-123123
 
   CWLogGroupName:
     Type: String
@@ -137,7 +143,7 @@ Resources:
     DeletionPolicy: Delete
     Type: "AWS::Logs::LogGroup"
     Properties:
-      LogGroupName: memegen-logs-live
+      LogGroupName: !Ref CWLogGroupName
       RetentionInDays: 7
 
   EC2InstanceProfile:
@@ -286,7 +292,7 @@ Resources:
             cd /home/ec2-user/myapp/src
             export S3_BUCKET=${SourceS3}
             export SOURCE_REGION=${SourceRegion}
-            export LOG_GROUP=memegen-logs-live
+            export LOG_GROUP=${CWLogGroupName}
             python3 app.py
 
 Outputs:
