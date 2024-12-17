@@ -16,7 +16,8 @@ group_name = os.environ['LOG_GROUP']
 handler = watchtower.CloudWatchLogHandler(
     log_group_name=group_name,
     boto3_client=client,
-    log_stream_name='all ec2'
+    log_stream_name='all ec2',
+    create_log_group='false'
     )
 cloud_logger = logging.getLogger('cloud logs')
 cloud_logger.addHandler(handler)
@@ -28,7 +29,8 @@ def log_wrapper(func):
     handler = watchtower.CloudWatchLogHandler(
         log_group_name=group_name,
         boto3_client=client,
-        log_stream_name='all ec2'
+        log_stream_name='all ec2',
+        create_log_group='false'
         )
 
     @functools.wraps(func)

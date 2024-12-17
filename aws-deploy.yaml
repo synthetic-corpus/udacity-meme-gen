@@ -177,6 +177,8 @@ Resources:
                 Resource:
                   - !Ref SourceS3Arn
                   - !Sub ${SourceS3Arn}/_sources/*
+                  - !Sub ${SourceS3Arn}/_fonts/*
+                  - !Sub ${SourceS3Arn}/_textdata/*
               - Effect: "Allow"
                 Action:
                   - "s3:ListBucket"
@@ -233,7 +235,7 @@ Resources:
             # Update packages
             echo "export S3_BUCKET=${SourceS3}" >> /etc/profile
             echo "export SOURCE_REGION=${SourceRegion}" >> /etc/profile
-            echo "export LOG_GROUP=memegen-logs-live" >> /etc/profile
+            echo "export LOG_GROUP=${CWLogGroupName}" >> /etc/profile
             echo $LOG_GROUP
             yum update -y
             yum install -y amazon-cloudwatch-agent
