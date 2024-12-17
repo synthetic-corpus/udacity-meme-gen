@@ -6,6 +6,7 @@ requested"""
 import boto3
 from PIL import Image
 from PIL.ImageFile import ImageFile
+import os
 from io import BytesIO
 from cloudlogger import log_wrapper, cloud_logger
 
@@ -56,3 +57,15 @@ class S3engine:
             # of the image.
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
+
+    @log_wrapper
+    def get_file(self, file_key: str):
+        """ Intended to get a generic file """
+        s3_object = self.my_bucket.Object(file_key)
+        response = s3_object.get()
+        print(type(response))
+        file_stream = response['Body']
+        print(type(file_stream))
+        this_file = os.open(file_stream)
+        """ return the original name of the file too """
+        return (this_file, file_key.split("/")[1])
