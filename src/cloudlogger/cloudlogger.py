@@ -17,7 +17,7 @@ handler = watchtower.CloudWatchLogHandler(
     log_group_name=group_name,
     boto3_client=client,
     log_stream_name='all ec2',
-    create_log_group='false'
+    create_log_group=False
     )
 cloud_logger = logging.getLogger('cloud logs')
 cloud_logger.addHandler(handler)
@@ -30,7 +30,7 @@ def log_wrapper(func):
         log_group_name=group_name,
         boto3_client=client,
         log_stream_name='all ec2',
-        create_log_group='false'
+        create_log_group=False
         )
 
     @functools.wraps(func)
