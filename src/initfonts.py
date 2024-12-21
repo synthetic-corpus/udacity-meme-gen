@@ -1,16 +1,29 @@
 """
-    This install fonts.
+    This install fonts stored from a s3 bucket.
     Run only if the installation of fonts is actually needed
 """
 from pathlib import Path
 import os
-import shutil
+import subprocess
+from S3engine import S3engine
 
-abs_path = Path(__file__).resolve().parent
+font_path = '/usr/share/fonts/truetype'
+s3engine = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
 
-font_source = f'{abs_path}/_fonts'
-font_dest = '/usr/share/fonts'
-for font in os.listdir(font_source):
-    source_file = os.path.join(font_source, font)
-    shutil.copy(source_file, font_dest)
-    print(f'Copied {source_file} to host font folder')
+fonts = s3engine.list_content('_fonts')
+
+for font_keys in fonts:
+    font, font_name = S3engine.get_file(font_keys[0])
+    save_here = os.path.join(font_path,font_name)
+    with open(save_here, 'wb') as f:
+        f.write(font)
+    print(f'Saved Font: {font_name}')
+
+refresh_command = ['fc-cache','-fv']
+result = subprocess.run(refresh_command, 
+               capture_output=True, 
+               text=True)
+
+print(result.stderr)
+print(result.stdout)
+print("all Done")

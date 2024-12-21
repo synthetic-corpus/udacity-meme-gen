@@ -63,9 +63,7 @@ class S3engine:
         """ Intended to get a generic file """
         s3_object = self.my_bucket.Object(file_key)
         response = s3_object.get()
-        print(type(response))
         file_stream = response['Body']
-        print(type(file_stream))
-        this_file = os.open(file_stream)
+        this_file = file_stream.read()
         """ return the original name of the file too """
         return (this_file, file_key.split("/")[1])
