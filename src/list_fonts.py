@@ -31,7 +31,7 @@ result = subprocess.run(refresh_command,
                text=True)
 
 font_cmd = ['fc-list','--format=%{file}\n']
-fonts = subprocess.run(font_cmd,
+result = subprocess.run(font_cmd,
                        capture_output=True,
                        text=True)
 
