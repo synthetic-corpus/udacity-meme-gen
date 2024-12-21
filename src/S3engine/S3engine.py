@@ -26,7 +26,9 @@ class S3engine:
             sources = [(o.key, o.key.split('/')[1]) for o in objects]
             message = f'Returning a list for {folder}. Sample {sources[:2]}'
             cloud_logger.info(message)
-            return sources
+            """ Ignore the first element """
+            """ First element is '(folder,"")' which is not useful"""
+            return sources[1:]
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
 
