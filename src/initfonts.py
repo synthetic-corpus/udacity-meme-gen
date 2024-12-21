@@ -11,7 +11,7 @@ from S3engine import S3engine
 from MemeEngine import MemeGenerator
 from setup import setup_text
 
-font_path = '/usr/share/fonts/truetype'
+font_path = '/usr/share/fonts'
 s3engine = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
 memegenerator = MemeGenerator('_sources')
 quotes = setup_text()
