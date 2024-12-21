@@ -35,7 +35,7 @@ fonts = subprocess.run(font_cmd,
                        capture_output=True,
                        text=True)
 
-fonts = [x.split('/')[-1] for x in fonts if 'google' not in x]
+fonts = [x.split('/')[-1] for x in fonts.stdout if 'google' not in x]
 fonts = [x for x in fonts if x != '']
 images = s3engine.list_content('_sources')
 
