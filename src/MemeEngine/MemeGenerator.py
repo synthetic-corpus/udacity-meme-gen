@@ -35,7 +35,7 @@ class MemeGenerator:
         """
 
         source_file = self.scale_image(source_file, width)
-        text = f'"{text}" (${font}) - {author}'
+        text = f'"{text}" ({font}) - {author}'
         self.add_text(image=source_file, text=text,
                       font_name=font, font_size=30)
 
@@ -79,7 +79,7 @@ class MemeGenerator:
         return image
 
     def add_text(self, image: Image, text: str,
-                 font_name='Arial.ttf', font_size=20) -> None:
+                 font_name, font_size=20) -> None:
         """Add text somewhere on the image."""
         if font_size < 12 or font_size > 40:
             print(
