@@ -35,7 +35,7 @@ class MemeGenerator:
         """
 
         source_file = self.scale_image(source_file, width)
-        text = f'"{text}" - {author}'
+        text = f'"{text}" (${font}) - {author}'
         self.add_text(image=source_file, text=text,
                       font_name=font, font_size=30)
 
