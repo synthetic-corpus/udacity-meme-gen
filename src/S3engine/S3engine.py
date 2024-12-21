@@ -66,6 +66,5 @@ class S3engine:
         s3_object = self.my_bucket.Object(file_key)
         response = s3_object.get()
         file_stream = response['Body']
-        this_file = file_stream.read()
         """ return the original name of the file too """
-        return (this_file, file_key.split("/")[1])
+        return (file_stream, file_key.split("/")[1])

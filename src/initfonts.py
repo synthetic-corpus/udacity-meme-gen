@@ -13,10 +13,10 @@ s3engine = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
 fonts = s3engine.list_content('_fonts')
 
 for font_keys in fonts:
-    font, font_name = S3engine.get_file(font_keys[0])
+    font, font_name = s3engine.get_file(font_keys[0])
     save_here = os.path.join(font_path,font_name)
     with open(save_here, 'wb') as f:
-        f.write(font)
+        f.write(font.read())
     print(f'Saved Font: {font_name}')
 
 refresh_command = ['fc-cache','-fv']
