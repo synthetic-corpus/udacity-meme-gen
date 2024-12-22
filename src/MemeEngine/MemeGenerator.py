@@ -6,7 +6,8 @@
     and outputs the same.
 """
 
-from random import randint
+from random import randint, choice
+import subprocess
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFile import ImageFile
 
@@ -35,12 +36,31 @@ class MemeGenerator:
         """
 
         source_file = self.scale_image(source_file, width)
-        text = f'"{text}" ({font}) - {author}'
+        text = f'"{text}" - {author}'
         self.add_text(image=source_file, text=text,
                       font_name=font, font_size=30)
 
         image_name = f'{uuid}-text.jpeg'
         return (source_file, image_name)
+
+    @classmethod
+    def random_font() -> str:
+        """ Returns a Random Font from an EC2 cli"""
+        refresh_command = ['fc-cache','-fv']
+        result = subprocess.run(refresh_command, 
+               capture_output=True, 
+               text=True)
+
+        font_cmd = ['fc-list','--format=%{file}\n']
+        result = subprocess.run(font_cmd,
+                       capture_output=True,
+                       text=True)
+
+        fonts = result.stdout.split('\n')
+        fonts = [x.split('/')[-1] for x in fonts if 'google' not in x]
+        fonts = [x for x in fonts if x != '']
+
+        return choice(fonts)
 
     @classmethod
     def rightsize_text(cls, text: str,

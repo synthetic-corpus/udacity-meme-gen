@@ -17,6 +17,8 @@ s3access = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
 
 quotes = setup_text()
 imgs = s3access.list_content('_sources')
+print('now loading fonts...')
+s3access.load_fonts()
 
 
 @app.route('/')
@@ -25,10 +27,15 @@ def meme_rand():
     ID = uuid.uuid4()
     img_key_tup = random.choice(imgs)
     quote = random.choice(quotes)
+    my_font = MemeGenerator.random_font()
     try:
         image_obj, _ = s3access.get_image(img_key_tup[0])
-        processed_image, image_name = meme.make_meme(image_obj, quote.body,
-                                                     quote.author, uuid=ID)
+        processed_image, image_name = meme.make_meme(
+            source_file=image_obj,
+            text=quote.body,
+            author=quote.author,
+            font=my_font,
+            uuid=ID)
         s3access.put_image(processed_image, image_name)
         return render_template('meme.html', path='bad http TODO here')
     except Exception as e:

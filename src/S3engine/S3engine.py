@@ -68,3 +68,20 @@ class S3engine:
         file_stream = response['Body']
         """ return the original name of the file too """
         return (file_stream, file_key.split("/")[1])
+
+    @log_wrapper
+    def load_fonts(self, folder='/usr/share/fonts') -> str:
+        """ This call loads fonts from s3 to an ec2 instance """
+        fonts = self.list_content('_fonts')
+        output_array = []
+        for font_tuple in fonts:
+            font, font_name = self.get_file(font_tuple[0])
+            save_here = os.path(folder, font_name)
+            try:
+                with open(save_here, 'wb') as f:
+                    f.write(font.read())
+                output_array.append(font_name)
+            except Exception as e:
+                cloud_logger.error(f'could not load font {font_name} - {e}')
+        message = f'Succesfully loaded fonts: {output_array}'
+        return message  # this is jut for easy logging
