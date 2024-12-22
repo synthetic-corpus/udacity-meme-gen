@@ -76,7 +76,7 @@ class S3engine:
         output_array = []
         for font_tuple in fonts:
             font, font_name = self.get_file(font_tuple[0])
-            save_here = os.path(folder, font_name)
+            save_here = os.path.join(folder, font_name)
             try:
                 with open(save_here, 'wb') as f:
                     f.write(font.read())
