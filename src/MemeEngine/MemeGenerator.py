@@ -44,7 +44,7 @@ class MemeGenerator:
         return (source_file, image_name)
 
     @classmethod
-    def random_font() -> str:
+    def random_font(cls) -> str:
         """ Returns a Random Font from an EC2 cli"""
         refresh_command = ['fc-cache','-fv']
         result = subprocess.run(refresh_command, 
