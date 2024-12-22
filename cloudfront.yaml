@@ -40,6 +40,7 @@ Resources:
         Origins:
           - Id: S3Origin
             DomainName: !Sub '${S3BucketName}.s3.amazonaws.com'
+            OriginAccessControlId: !Ref MyOriginAccessControl
             S3OriginConfig:
               OriginAccessIdentity: '' # Intentionally black becuse using OAC
         DefaultCacheBehavior:
