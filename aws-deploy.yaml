@@ -136,7 +136,7 @@ Resources:
       VpcId: !Ref VPCId
       HealthCheckProtocol: HTTP
       HealthCheckPort: 80
-      HealthCheckPath: /
+      HealthCheckPath: /health
 
   # Cloud Watch Group
   CloudWatchLogsGroup:
