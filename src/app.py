@@ -36,6 +36,12 @@ def meme_rand():
         cloud_logger.info(oops)
 
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """ Health Check for AWS services """
+    return "OK", 200
+
+
 @app.route('/create', methods=['GET'])
 def meme_form():
     """ User input for meme information """
