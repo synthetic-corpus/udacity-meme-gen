@@ -137,7 +137,7 @@ class PDFIngestor(IngestorInterface):
         outfile_path = f'{abs_path}/../_data/tmp/pdf-as-textf.txt'
         try:
             result = subprocess.run([
-                'pdftotext', '-enc', 'UTF-8', '-simple',
+                'pdftotext', '-enc', 'UTF-8',
                 path, outfile_path,
             ], capture_output=True)
             print(result)
@@ -159,21 +159,25 @@ class TextIngestor(IngestorInterface):
         """Open text file and process."""
         cls.check_extention(path)
         wise_quotes = []
-        with open(path, 'r', encoding='utf-8') as text:
-            word_array = text.read()
-            word_array = word_array.split('\n')
-            for line in word_array:
-                try:
-                    pattern = r'["“”„‟‶‷＂″＇＂]'  # because pdfs
-                    line = re.sub(pattern, '', line)
-                    cls.validate_line(line)  # there are some blank lines
-                    string = line.replace('"', '')
-                    splitted_quote = string.split("-")
-                    wise_quotes.append(
-                        QuoteModel(splitted_quote[0], splitted_quote[1])
-                        )
-                except (InvalidLine, IndexError) as e:
-                    print(e)
+        try:
+            with open(path, 'r', encoding='utf-8') as text:
+                word_array = text.read()
+                word_array = word_array.split('\n')
+                for line in word_array:
+                    try:
+                        pattern = r'["“”„‟‶‷＂″＇＂]'  # because pdfs
+                        line = re.sub(pattern, '', line)
+                        cls.validate_line(line)  # there are some blank lines
+                        string = line.replace('"', '')
+                        splitted_quote = string.split("-")
+                        wise_quotes.append(
+                            QuoteModel(splitted_quote[0], splitted_quote[1])
+                            )
+                    except (InvalidLine, IndexError) as e:
+                        print(e)
+        except OSError as e:
+            print("Unable to find file at Text Ingest!")
+            print(e)
         return wise_quotes
 
 

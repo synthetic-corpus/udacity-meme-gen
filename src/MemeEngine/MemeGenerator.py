@@ -1,18 +1,21 @@
 """"This class creates a meme generator object.
     Its only parameter is a path of where to save
     the generated files.
+
+    Meme Generator now takes a ImageFile as an inpute
+    and outputs the same.
 """
 
-import pickle
-import hashlib
-from random import randint
+from random import randint, choice
+import subprocess
 from PIL import Image, ImageDraw, ImageFont
+from PIL.ImageFile import ImageFile
 
 
 class MemeGenerator:
     """Create a Meme Geneartor.
         Paramaters:
-        @path = the path to save files
+        @path = the folder of the s3 bucket.
     """
 
     def __init__(self, out_folder):
@@ -20,40 +23,44 @@ class MemeGenerator:
 
     def make_meme(
             self,
-            image_path,
+            source_file,
             text,
             author,
+            uuid,
             font='Arial.ttf',
-            width=500) -> str:
+            width=500) -> tuple[ImageFile, str]:
         """Create a meme.
-            @Return file path where Meme is.
+            @source_file: a loaded ImageFile, from s3.
+            @Return an ImageFile that is the result of
+            processing
         """
-        try:
-            next_image = self.load_image(image_path)
-        except OSError as e:  # Creates a 'file not found' image
-            print(e)
-            blank_square = Image.new('RGB', (500, 500), color='white')
-            writer = ImageDraw.Draw(blank_square)
-            font = ImageFont.truetype('Arial.ttf', 40)
-            message = f'File: \n {image_path} \n not found!'
-            length = writer.textlength(text, font)
-            horizontal = (500 - length) // 2
-            vertical = 250
-            writer.text((horizontal, vertical),
-                        message,
-                        fill='black',
-                        font=font)
-            file_path = f'{self._out_path}/not-found.jpg'
-            blank_square.save(file_path)
-            next_image = self.load_image(file_path)
 
-        next_image = self.scale_image(next_image, width)
+        source_file = self.scale_image(source_file, width)
         text = f'"{text}" - {author}'
-        self.add_text(next_image, text, font_name='Arial.ttf', font_size=30)
-        image_name = f'{self.name_by_hash(next_image)}.jpg'
-        file_path = f'{self._out_path}/{image_name}'
-        next_image.save(file_path)
-        return file_path
+        self.add_text(image=source_file, text=text,
+                      font_name=font, font_size=30)
+
+        image_name = f'{uuid}-text.jpeg'
+        return (source_file, image_name)
+
+    @classmethod
+    def random_font(cls) -> str:
+        """ Returns a Random Font from an EC2 cli"""
+        refresh_command = ['fc-cache','-fv']
+        result = subprocess.run(refresh_command, 
+               capture_output=True, 
+               text=True)
+
+        font_cmd = ['fc-list','--format=%{file}\n']
+        result = subprocess.run(font_cmd,
+                       capture_output=True,
+                       text=True)
+
+        fonts = result.stdout.split('\n')
+        fonts = [x.split('/')[-1] for x in fonts if 'google' not in x]
+        fonts = [x for x in fonts if x != '']
+
+        return choice(fonts)
 
     @classmethod
     def rightsize_text(cls, text: str,
@@ -85,17 +92,6 @@ class MemeGenerator:
         multi_line_text = "".join(lines)
         return multi_line_text
 
-    @classmethod
-    def name_by_hash(cls, image: Image):
-        """Returns the name of the image file as a Hash.
-            Useful for uniqueness.
-        """
-        image_bytes = pickle.dumps(image)
-        hasher = hashlib.sha256()
-        hasher.update(image_bytes)
-        hash_name = hasher.hexdigest()
-        return hash_name
-
     @staticmethod
     def load_image(path) -> Image:
         """Load an image as a file-like object."""
@@ -103,7 +99,7 @@ class MemeGenerator:
         return image
 
     def add_text(self, image: Image, text: str,
-                 font_name='Arial.ttf', font_size=20) -> None:
+                 font_name, font_size=20) -> None:
         """Add text somewhere on the image."""
         if font_size < 12 or font_size > 40:
             print(
@@ -142,7 +138,3 @@ class MemeGenerator:
 
         resized = image.resize((new_width, new_height))
         return resized
-
-    def save_image(self, image):
-        """Saves image to predefined out_path."""
-        pass

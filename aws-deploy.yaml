@@ -1,0 +1,301 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy a single EC2 instance behind an ALB in the default VPC.
+
+Parameters:
+  SourceS3Arn:
+    Type: String
+    Description: The Full ARN of the S3 Bucket
+    Default: arn:aws:s3:::whatever your bucket is
+
+  SourceS3:
+    Type: String
+    Description: This is the bucket name
+    Default: whatever your bucket name is
+
+  SourceRegion:
+    Type: String
+    Description: The region your bucket is in
+    Default: 'us-west-2'
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    Description: Type of EC2 instance
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+      - t3a.micro
+    ConstraintDescription: Must be a valid EC2 instance type.
+
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+    Description: Which VPC this is to be deployed under
+    Default: vpc-....
+
+  SubnetId1:
+    Type: AWS::EC2::Subnet::Id
+    Description: a Public subnet that is already set up with VPC.
+    Default: subnet-...
+
+  SubnetId2:
+    Type: AWS::EC2::Subnet::Id
+    Description: A secondary public Subnet already set up within the VPC
+    Default: subnet-...
+
+  RepoBranch:
+    Type: String
+    Default: clouddeploy
+    Description: Which branch to clone the rep from
+
+  RepositoryURL:
+    Type: String
+    Description: This is URL to a git repo/branch that code is expected to be pulled from
+    Default: https://github.com/synthetic-corpus/udacity-meme-gen
+
+  amiID:
+    Type: AWS::EC2::Image::Id
+    Description: the AMI id to be used. Code assumes this AMI has Python3 >= 3.9 and pip3 installed
+    Default: ami-123123
+
+  CWLogGroupName:
+    Type: String
+    Description: the Log Group Name set up in Cloud Formation
+    Default: memegen-logs
+
+Resources:
+  # Security Group for the ALB
+  ALBSecurityGroup:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic to the ALB
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: '0.0.0.0/0'
+
+  # Security Group for the EC2 instance
+  EC2SecurityGroup:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow inbound HTTP traffic from the ALB
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+        - IpProtocol: tcp # This rule allows AWS SSH browser tool to work in the us-west-2 region.
+          FromPort: 22
+          ToPort: 22
+          CidrIp: '18.237.140.160/29'
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: '0.0.0.0/0'
+
+
+  # Application Load Balancer
+  MyLoadBalancer:
+    DeletionPolicy: Delete
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: my-load-balancer
+      Subnets:
+        - !Ref SubnetId1
+        - !Ref SubnetId2
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: 60
+      Type: application
+
+  # Load Balancer Listener
+  MyListener:
+    DeletionPolicy: Delete
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MyTargetGroup
+      LoadBalancerArn: !Ref MyLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  # Target Group for the ALB
+  MyTargetGroup:
+    DeletionPolicy: Delete
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPCId
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 80
+      HealthCheckPath: /health
+
+  # Cloud Watch Group
+  CloudWatchLogsGroup:
+    DeletionPolicy: Delete
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Ref CWLogGroupName
+      RetentionInDays: 7
+
+  EC2InstanceProfile:
+    DeletionPolicy: Delete
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+        - !Ref EC2Role
+
+  # EC2 Role to Write to CloudWatch
+  EC2Role:
+    DeletionPolicy: Delete
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "ec2.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "ReadWriteS3"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:ListBucket"
+                  - "s3:GetObject"
+                Resource:
+                  - !Ref SourceS3Arn
+                  - !Sub ${SourceS3Arn}/_sources/*
+                  - !Sub ${SourceS3Arn}/_fonts/*
+                  - !Sub ${SourceS3Arn}/_textdata/*
+              - Effect: "Allow"
+                Action:
+                  - "s3:ListBucket"
+                  - "s3:PutObject"
+                Resource:
+                  - !Sub "${SourceS3Arn}/_images/*"
+        - PolicyName: "CloudWatchLogsPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "logs:PutLogEvents"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:DescribeLogStreams"
+                  - "logs:DescribeLogGroups"
+                Resource: 
+                  - !GetAtt CloudWatchLogsGroup.Arn
+
+  # EC2 Auto Scaling Group
+  MyAutoScalingGroup:
+    DeletionPolicy: Delete
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MinSize: 1
+      MaxSize: 5
+      DesiredCapacity: 2
+      TargetGroupARNs:
+           - !Ref MyTargetGroup
+      VPCZoneIdentifier:
+        - !Ref SubnetId1
+        - !Ref SubnetId2
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+
+  # Launch Configuration
+  MyLaunchTemplate:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt EC2InstanceProfile.Arn
+        InstanceType: !Ref InstanceType
+        ImageId: !Ref amiID
+        SecurityGroupIds:
+          - !Ref EC2SecurityGroup
+        UserData:
+          # clones my public repo and install Python
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            # Update packages
+            echo "export S3_BUCKET=${SourceS3}" >> /etc/profile
+            echo "export SOURCE_REGION=${SourceRegion}" >> /etc/profile
+            echo "export LOG_GROUP=${CWLogGroupName}" >> /etc/profile
+            echo $LOG_GROUP
+            yum update -y
+            yum install -y amazon-cloudwatch-agent
+            # Create CloudWatch Agent config file (replace with your configuration)
+            cat <<EOF >> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+            '{
+              "logs": {
+                "logs_collected": {
+                  "files": {
+                    "collect_list": [
+                      {
+                        "file_path": "/proc/self/fd/1",
+                        "log_group_name": "/aws/ec2/stdout",
+                        "log_stream_name": "{instance_id}/stdout",
+                        "log_stream_name_key": "hostname",
+                        "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                        "multi_line_start_pattern": "{timestamp_format}"
+                      },
+                      {
+                        "file_path": "/proc/self/fd/2",
+                        "log_group_name": "/aws/ec2/stderr",
+                        "log_stream_name": "{instance_id}/stderr",
+                        "log_stream_name_key": "hostname",
+                        "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                        "multi_line_start_pattern": "{timestamp_format}"
+                      },
+                      {
+                        "file_path": "/var/log/messages",
+                        "log_group_name": "${AWS::StackName}-logs",
+                        "log_stream_name": "{instance_id}/messages",
+                        "timestamp_format": "%b %d %H:%M:%S"
+                      }
+                    ]
+                  }
+                }
+              }
+            }'
+            EOF
+            # Start CloudWatch Agent
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+            # PDF to text for a CLI command
+            yum install -y poppler-utils
+            # Install git and Python 3
+            yum install -y git
+            # Clone the repository
+            git clone -b ${RepoBranch} ${RepositoryURL} /home/ec2-user/myapp
+            # Navigate to the application directory
+            cd /home/ec2-user/myapp
+            python3 -m venv .venv
+            source .venv/bin/activate
+            # Run the Python commands
+            sudo yum -y install python-pip
+            python3 -m pip install -r requirements.txt
+            cd /home/ec2-user/myapp/src
+            export S3_BUCKET=${SourceS3}
+            export SOURCE_REGION=${SourceRegion}
+            export LOG_GROUP=${CWLogGroupName}
+            python3 app.py
+
+Outputs:
+  LoadBalancerDNSName:
+    Description: DNS Name of the Load Balancer
+    Value: !GetAtt MyLoadBalancer.DNSName

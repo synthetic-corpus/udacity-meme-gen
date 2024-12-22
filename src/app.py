@@ -1,26 +1,52 @@
 import random
+import uuid
 import os
+from PIL.ImageFile import ImageFile
 from pathlib import Path
 from flask import Flask, render_template, make_response, request
 from MemeEngine import MemeGenerator
 from WebEngine import ImageRequestor, BadWebRequest
-from setup import setup
+from S3engine import S3engine
+from cloudlogger import cloud_logger
+from setup import setup_text
 
 app = Flask(__name__)
 
-meme = MemeGenerator('./static')
+meme = MemeGenerator('_sources')
+s3access = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
 
-quotes, imgs = setup()
+quotes = setup_text()
+imgs = s3access.list_content('_sources')
+print('now loading fonts...')
+s3access.load_fonts()
 
 
 @app.route('/')
 def meme_rand():
     """ Generate a random meme """
-
-    img = random.choice(imgs)
+    ID = uuid.uuid4()
+    img_key_tup = random.choice(imgs)
     quote = random.choice(quotes)
-    path = meme.make_meme(img, quote.body, quote.author)
-    return render_template('meme.html', path=path)
+    my_font = MemeGenerator.random_font()
+    try:
+        image_obj, _ = s3access.get_image(img_key_tup[0])
+        processed_image, image_name = meme.make_meme(
+            source_file=image_obj,
+            text=quote.body,
+            author=quote.author,
+            font=my_font,
+            uuid=ID)
+        s3access.put_image(processed_image, image_name)
+        return render_template('meme.html', path='bad http TODO here')
+    except Exception as e:
+        oops = f'{type(e).__name__} Exception: - {e}'
+        cloud_logger.info(oops)
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """ Health Check for AWS services """
+    return "OK", 200
 
 
 @app.route('/create', methods=['GET'])
@@ -54,4 +80,4 @@ def meme_post():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=80)
