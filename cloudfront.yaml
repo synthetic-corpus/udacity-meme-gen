@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'This creates a Cloud Front distro from an s3 Bucket.'
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: The name of the existing S3 bucket. You must create this prior to running this file.
+    Default: The Name of your s3 Bucket must go here.
+
+Resources:
+  MyCachePolicy:
+    Type: 'AWS::CloudFront::CachePolicy'
+    Properties:
+      CachePolicyConfig:
+           DefaultTTL: 9000
+           MaxTTL: 18000
+           MinTTL: 60
+           Name: myCacheName
+           ParametersInCacheKeyAndForwardedToOrigin:
+                CookiesConfig:
+                     CookieBehavior: none
+                EnableAcceptEncodingGzip: False
+                HeadersConfig:
+                     HeaderBehavior: whitelist
+                     Headers:
+                      - 'Authorization'
+                QueryStringsConfig:
+                     QueryStringBehavior: none
+
+  MyCloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Comment: 'CloudFront Distribution for S3 Bucket'
+        CacheBehaviors:
+             - CachePolicyId: !Ref MyCachePolicy
+               PathPattern: '_images/*'
+               TargetOriginId: S3Origin
+               ViewerProtocolPolicy: allow-all
+        Origins:
+          - Id: S3Origin
+            DomainName: !Sub '${S3BucketName}.s3.amazonaws.com'
+            S3OriginConfig:
+              OriginAccessIdentity: '' # Intentionally black becuse using OAC
+        DefaultCacheBehavior:
+          CachePolicyId: !Ref MyCachePolicy
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+        Enabled: 'true'
+        HttpVersion: 'http2'
+        PriceClass: 'PriceClass_100'
+
+  MyOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+         OriginAccessControlConfig:
+              Description: A OAC for the Cloudfront. Controls s3 Permissions.
+              Name: My Simple OAC
+              OriginAccessControlOriginType: s3
+              SigningBehavior: no-override
+              SigningProtocol: sigv4
+
+
+Outputs:
+  CloudFrontDistributionId:
+    Description: 'CloudFront Distribution ID'
+    Value: !Ref MyCloudFrontDistribution
+
+  CloudFrontDomainName:
+    Description: 'CloudFront Distribution Domain Name'
+    Value: !GetAtt MyCloudFrontDistribution.DomainName
