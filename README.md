@@ -23,12 +23,14 @@ _sources
 _textdata
 _fonts
 
-At the project's current stage, only _images and _sources matter. The other folders are for forthcoming features.
+At the project's current stage, only _images, sources_, and _fonts can be configured. _textdata is for forthcoming features.
 
 ### Set Up Sources Images
 
-Once the s3 bucket has been set up, upload any number .jpeg images into the _sources folder. This will serve as the source for all memes randomly created.
+Once the s3 bucket has been set up, upload any number .jpeg images into the _sources folder. This will serve as the source for all memes randomly created. _images should remain empty.
 
+### Setting up _fonts
+Place any number .ttf fonts in here. This software has only been tested with that format of a font. Memes will be generated from any random font from this part of the folder.
 
 ### Adding Text files
 
