@@ -36,8 +36,8 @@ def meme_rand():
             author=quote.author,
             font=my_font,
             uuid=ID)
-        s3access.put_image(processed_image, image_name)
-        return render_template('meme.html', path='bad http TODO here')
+        url_path = s3access.put_image(processed_image, image_name)
+        return render_template('meme.html', path=url_path)
     except Exception as e:
         oops = f'{type(e).__name__} Exception: - {e}'
         cloud_logger.info(oops)

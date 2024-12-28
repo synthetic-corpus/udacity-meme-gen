@@ -62,6 +62,11 @@ Parameters:
     Description: the Log Group Name set up in Cloud Formation
     Default: memegen-logs
 
+  CDNDomain:
+    Type: String
+    Description: The Url of the CDN, without the https://
+    Default: cloudfront.example.net
+
 Resources:
   # Security Group for the ALB
   ALBSecurityGroup:
@@ -293,6 +298,7 @@ Resources:
             export S3_BUCKET=${SourceS3}
             export SOURCE_REGION=${SourceRegion}
             export LOG_GROUP=${CWLogGroupName}
+            export CDN={$CDNDomain}
             python3 app.py
 
 Outputs:

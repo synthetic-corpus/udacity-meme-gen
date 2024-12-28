@@ -55,8 +55,10 @@ class S3engine:
             file_stream = BytesIO()
             image.save(file_stream, format='jpeg')
             new_s3_object.put(Body=file_stream.getvalue())
-            # TODO at this point, the file should return the public URL
-            # of the image.
+            # Return the constructed url of the images
+            domain = os.environ['CDN']
+            file_url = f'https://{domain}/_images/{object_name}'
+            return file_url
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
 
