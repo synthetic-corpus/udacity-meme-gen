@@ -7,6 +7,11 @@ Parameters:
     Description: The name of the existing S3 bucket. You must create this prior to running this file.
     Default: The Name of your s3 Bucket must go here.
 
+  S3ARN:
+    Type: String
+    Description: The complete ARN of the S3 bucket, for purposes of adding permissions
+    Default: complete ARN goes here.
+
 Resources:
   MyCachePolicy:
     Type: 'AWS::CloudFront::CachePolicy'
@@ -67,7 +72,22 @@ Resources:
               SigningBehavior: no-override
               SigningProtocol: sigv4
 
-
+  S3Policy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3BucketName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Sid: 'Read access for CDN'
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub '${S3ARN}/_images/*'
+            Condition:
+              StringEquals:
+                aws:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${MyCloudFrontDistribution}
 Outputs:
   CloudFrontDistributionId:
     Description: 'CloudFront Distribution ID'
