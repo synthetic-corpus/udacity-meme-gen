@@ -298,7 +298,7 @@ Resources:
             export S3_BUCKET=${SourceS3}
             export SOURCE_REGION=${SourceRegion}
             export LOG_GROUP=${CWLogGroupName}
-            export CDN={$CDNDomain}
+            export CDN=${CDNDomain}
             python3 app.py
 
 Outputs:

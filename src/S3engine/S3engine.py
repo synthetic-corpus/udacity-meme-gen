@@ -57,7 +57,7 @@ class S3engine:
             new_s3_object.put(Body=file_stream.getvalue())
             # Return the constructed url of the images
             domain = os.environ['CDN']
-            file_url = f'https://{domain}/_images/{object_name}'
+            file_url = f'{domain}/_images/{object_name}'
             return file_url
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
