@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'This creates a Cloud Front distro from an s3 Bucket.'
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: The name of the existing S3 bucket. You must create this prior to running this file.
+    Default: The Name of your s3 Bucket must go here.
+
+  S3ARN:
+    Type: String
+    Description: The complete ARN of the S3 bucket, for purposes of adding permissions
+    Default: complete ARN goes here.
+
+Resources:
+  MyCachePolicy:
+    Type: 'AWS::CloudFront::CachePolicy'
+    Properties:
+      CachePolicyConfig:
+           DefaultTTL: 9000
+           MaxTTL: 18000
+           MinTTL: 60
+           Name: myCacheName
+           ParametersInCacheKeyAndForwardedToOrigin:
+                CookiesConfig:
+                     CookieBehavior: none
+                EnableAcceptEncodingGzip: False
+                HeadersConfig:
+                     HeaderBehavior: whitelist
+                     Headers:
+                      - 'Authorization'
+                QueryStringsConfig:
+                     QueryStringBehavior: none
+
+  MyCloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Comment: 'CloudFront Distribution for S3 Bucket'
+        CacheBehaviors:
+             - CachePolicyId: !Ref MyCachePolicy
+               PathPattern: '_images/*'
+               TargetOriginId: S3Origin
+               ViewerProtocolPolicy: allow-all
+        Origins:
+          - Id: S3Origin
+            DomainName: !Sub '${S3BucketName}.s3.amazonaws.com'
+            OriginAccessControlId: !Ref MyOriginAccessControl
+            S3OriginConfig:
+              OriginAccessIdentity: '' # Intentionally black becuse using OAC
+        DefaultCacheBehavior:
+          CachePolicyId: !Ref MyCachePolicy
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+        Enabled: 'true'
+        HttpVersion: 'http2'
+        PriceClass: 'PriceClass_100'
+
+  MyOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+         OriginAccessControlConfig:
+              Description: A OAC for the Cloudfront. Controls s3 Permissions.
+              Name: My Simple OAC
+              OriginAccessControlOriginType: s3
+              SigningBehavior: no-override
+              SigningProtocol: sigv4
+
+  S3Policy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3BucketName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Sid: 'Read access for CDN'
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub '${S3ARN}/_images/*'
+            Condition:
+              StringEquals:
+                aws:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${MyCloudFrontDistribution}
+Outputs:
+  CloudFrontDistributionId:
+    Description: 'CloudFront Distribution ID'
+    Value: !Ref MyCloudFrontDistribution
+
+  CloudFrontDomainName:
+    Description: 'CloudFront Distribution Domain Name'
+    Value: !GetAtt MyCloudFrontDistribution.DomainName

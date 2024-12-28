@@ -52,7 +52,20 @@ The author name must be letters and spaces only. Any characters can go before th
 
 The text files can be placed anywhere in the *_data* folder to be ingested. *You must commit them to your own fork of this repo at this time.*
 
-## Prepare Parameters for Cloud Deployement
+# Deployment
+
+This application can be deployed with *two* YAML files. The first is cloudfront.YAML, which sets up the CDN. The second is aws-deploy.yaml, which deploys the resources that use the CDN.
+
+*Importantly*, both of these YAML files reference the *same s3 bucket* as configured above. Additionally, cloudfront.yaml is fairly simple; if you prefer not to deploy it via YAML, it can be set up manually like the s3 bucket. Note well if you do choose to deploy using cloudfront.yaml, the s3 bucket *must not have* a bucket policy set, otherwise the deployment will fail.
+
+Either way, a CDN must be created before AWS-Deploy.yaml is run. AWS-Deploy.yaml will use a CDN url as one of its required parameters.
+
+## Parameters for cloudfront.yaml
+
+### S3BucketName and S3ARN
+This is the common name of the bucket and its ARN repsectively.
+
+## Parameters for AWS-Deploy.yaml
 
 The YAML file requires several parameters to set up. Many default values are not expected to work. Those exist for example only.
 
@@ -74,16 +87,19 @@ This field must be an ami available in the region. See below for further details
 ### CWLogGroupName
 Whatever you want to log group to be named. Must be unique per region.
 
+### CDNDomain
+This must be CDN domain set up with either cloudfront.yaml, or manually configured otherwise.
+
 ## Configuring the AMI
-You can use any Linux based AMI. It must have pip3 an at least Python 3.9 installed. Git cloning and pip import handle the rest of the requirements when an ec2 instance is deployed.
+You can use any Linux based AMI. It must have pip3 and at least Python 3.9 installed. Git cloning and pip import handle the rest of the requirements when an ec2 instance is deployed.
 
 # Is the Project working?
-Once CW is deployed, you should be able to access it on Load Balancer's public URL on Port 80.
+Once CW is deployed, you should be able to access it on Load Balancer's public URL.
 
 # What is working?
-When you make a Meme, it is expected to appear in in the s3 Bucket's _images folder.
+When you make a Meme, it is expected to appear in in the s3 Bucket's _images folder. It should also appear in the browser.
 
 # What is yet to be done?
-The new Memes will not be visible from a browser yet. That requires additional work.
+Quote files are currently hard coded into the repo, which is a cumbersome process. Next steps is to extract those from the s3 bucket.
 
 Creating a Meme from the Web Request URL is not recommended at this time. It will not store the source image or resulting Meme image properly.
