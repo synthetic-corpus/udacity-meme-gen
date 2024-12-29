@@ -39,6 +39,9 @@ def meme_rand():
             font=my_font,
             uuid=ID)
         url_path = s3access.put_image(processed_image, image_name)
+        if url_path.find('https://') == -1:
+            """ Sanitizing input, basically..."""
+            url_path = f'https://{url_path}'
         return render_template('meme.html', path=url_path)
     except Exception as e:
         oops = f'{type(e).__name__} Exception: - {e}'
