@@ -97,8 +97,8 @@ class S3engine:
         sources = []
         for quote_tuple in quotes:
             quote_data, quote_name = self.get_file(quote_tuple[0])
-            save_here = os.path.join(os.path.dirname(__file__),
-                                     relative_path, quote_name)
+            relative_path = f'{relative_path}{quote_name}'
+            save_here = os.path.join(os.path.dirname(__file__), relative_path)
             try:
                 with open(save_here, 'wb') as f:
                     f.write(quote_data.read())
