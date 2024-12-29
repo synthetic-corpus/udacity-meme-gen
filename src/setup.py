@@ -56,6 +56,7 @@ def setup():
 
     return all_quotes, imgs
 
+
 def setup_text():
     """ Sets up quotes only """
     data_path = './_data'

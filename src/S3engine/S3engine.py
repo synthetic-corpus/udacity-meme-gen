@@ -91,7 +91,7 @@ class S3engine:
     @log_wrapper
     def load_quotes(self):
         """ Loads quotes into a local folder on ec2 """
-        quotes = self.list_content('_text')
+        quotes = self.list_content('_textdata')
         current_folder = os.getcwd()
         relative_path = '/../_data/miniquotes/'
         sources = []
