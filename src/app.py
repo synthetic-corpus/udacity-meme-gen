@@ -14,8 +14,10 @@ app = Flask(__name__)
 
 meme = MemeGenerator('_sources')
 s3access = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
-
+print('now loading quoates..')
+s3access.load_quotes()
 quotes = setup_text()
+print('now prepping source images...')
 imgs = s3access.list_content('_sources')
 print('now loading fonts...')
 s3access.load_fonts()

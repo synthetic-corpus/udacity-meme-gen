@@ -87,3 +87,22 @@ class S3engine:
                 cloud_logger.error(f'could not load font {font_name} - {e}')
         message = f'Succesfully loaded fonts: {output_array}'
         return message  # this is jut for easy logging
+
+    @log_wrapper
+    def load_quotes(self):
+        """ Loads quotes into a local folder on ec2 """
+        quotes = self.list_content('_text')
+        current_folder = os.getcwd()
+        relative_path = '/../_data/miniquotes/'
+        sources = []
+        for quote_tuple in quotes:
+            quote_data, quote_name = self.get_file(quote_tuple[0])
+            save_here = os.path.join(current_folder, relative_path, quote_name)
+            try:
+                with open(save_here, 'wb') as f:
+                    f.write(quote_data.read())
+                    sources.append(quote_name)
+            except Exception as e:
+                cloud_logger.error(f'could not load text! {quote_name}')
+        message = f'Loaded text data: {sources}'
+        return message  # easy logging again.
