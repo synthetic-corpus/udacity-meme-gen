@@ -18,12 +18,6 @@ class WebRequestor(ABC):
     """ Contains Methods for Downloading Files """
     valid_file_types = []
 
-    def __init__(self, save_folder):
-        """S3 Folder is the location where files
-            Will be saved.
-        """
-        self.save_folder = save_folder
-
     def get_file(self, url) -> bytes:
         """Finds a file from the internet.
             @return provides raw bytes of images file or error
@@ -45,7 +39,7 @@ class WebRequestor(ABC):
         else:
             raise BadWebRequest(f'Problem with url: {url}')
 
-    def get_image(self, url) -> tuple[ImageFile, str]:
+    def get_image(self, url) -> ImageFile:
         try:
             b = self.get_file(url)
             image = Image.open(BytesIO(b))
@@ -58,8 +52,8 @@ class ImageRequestor(WebRequestor):
     """Globally ensures that only certain image formats are downloaded"""
     valid_file_types = ['jpg', 'jpeg', 'png']
 
-    def __init__(self, save_folder):
-        super().__init__(save_folder)
+    def __init__(self):
+        super().__init__()
 
 
 class TextRequestor(WebRequestor):

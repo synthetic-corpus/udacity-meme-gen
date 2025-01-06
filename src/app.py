@@ -65,7 +65,7 @@ def meme_form():
 def meme_post():
     """ Create a user defined meme """
     params = request.form
-    requestor = ImageRequestor('_images')
+    requestor = ImageRequestor()
     try:
         web_image = requestor.get_image(params['image_url'])
         ID = uuid.uuid4()
