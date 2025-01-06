@@ -286,7 +286,7 @@ Resources:
             # Install git and Python 3
             yum install -y git
             # Clone the repository
-            git clone -b ${RepoBranch} ${RepositoryURL} /home/ec2-user/myapp
+            git clone --depth 1 -b ${RepoBranch} ${RepositoryURL} /home/ec2-user/myapp
             # Navigate to the application directory
             cd /home/ec2-user/myapp
             python3 -m venv .venv

@@ -24,11 +24,12 @@ class S3engine:
         try:
             objects = list(self.my_bucket.objects.filter(Prefix=folder))
             sources = [(o.key, o.key.split('/')[1]) for o in objects]
+            sources = [o for o in sources if len(o[1]) > 0]
             message = f'Returning a list for {folder}. Sample {sources[:2]}'
             cloud_logger.info(message)
             """ Ignore the first element """
             """ First element is '(folder,"")' which is not useful"""
-            return sources[1:]
+            return sources
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
 
@@ -87,3 +88,20 @@ class S3engine:
                 cloud_logger.error(f'could not load font {font_name} - {e}')
         message = f'Succesfully loaded fonts: {output_array}'
         return message  # this is jut for easy logging
+
+    @log_wrapper
+    def load_quotes(self, path):
+        """ Loads quotes into a local folder on ec2 """
+        quotes = self.list_content('_textdata')
+        sources = []
+        for quote_tuple in quotes:
+            quote_data, quote_name = self.get_file(quote_tuple[0])
+            save_here = os.path.join(path, quote_name)
+            try:
+                with open(save_here, 'wb') as f:
+                    f.write(quote_data.read())
+                    sources.append(quote_name)
+            except Exception as e:
+                cloud_logger.error(f'could not load text! {quote_name} - {e}')
+        message = f'Loaded text data: {sources}'
+        return message  # easy logging again.

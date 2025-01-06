@@ -14,8 +14,11 @@ app = Flask(__name__)
 
 meme = MemeGenerator('_sources')
 s3access = S3engine(os.environ['S3_BUCKET'], os.environ['SOURCE_REGION'])
-
+print('now loading quotes..')
+path = os.path.join(os.path.dirname(__file__), '_data/miniquotes')
+s3access.load_quotes(path)
 quotes = setup_text()
+print('now prepping source images...')
 imgs = s3access.list_content('_sources')
 print('now loading fonts...')
 s3access.load_fonts()
@@ -37,6 +40,9 @@ def meme_rand():
             font=my_font,
             uuid=ID)
         url_path = s3access.put_image(processed_image, image_name)
+        if url_path.find('https://') == -1:
+            """ Sanitizing input, basically..."""
+            url_path = f'https://{url_path}'
         return render_template('meme.html', path=url_path)
     except Exception as e:
         oops = f'{type(e).__name__} Exception: - {e}'
@@ -59,24 +65,30 @@ def meme_form():
 def meme_post():
     """ Create a user defined meme """
     params = request.form
-    abs_path = Path(__file__).resolve().parent
-    save_path = os.path.join(abs_path, 'tmp')
-    requestor = ImageRequestor(save_path)
+    requestor = ImageRequestor()
     try:
-        temp_file = requestor.get_file(params['image_url'])
-        static_location = meme.make_meme(
-            temp_file,
-            params['body'],
-            params['author']
+        web_image, _ = requestor.get_image(params['image_url'])
+        ID = uuid.uuid4()
+        my_font = MemeGenerator.random_font()
+        processed_image, image_name = meme.make_meme(
+            source_file=web_image,
+            text=params['body'],
+            author=params['author'],
+            uuid=ID,
+            font=my_font
         )
-    except (BadWebRequest, OSError):
+        url_path = s3access.put_image(processed_image, image_name)
+        if url_path.find('https://') == -1:
+            """ Sanitizing input, basically..."""
+            url_path = f'https://{url_path}'
+        return render_template('meme.html', path=url_path)
+    except Exception as e:
         bad_url = params['image_url']
         print(f'Could not get image from {bad_url}')
+        oops = f'{type(e).__name__} Exception: - {e}'
+        cloud_logger.info(oops, f'using {bad_url}')
         return render_template('meme_form_error.html',
                                error_message='bad url in request'), 400
-    os.remove(temp_file)
-
-    return render_template('meme.html', path=static_location)
 
 
 if __name__ == "__main__":

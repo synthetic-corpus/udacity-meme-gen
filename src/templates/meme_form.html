@@ -6,7 +6,7 @@
         <form action="{{url_for('meme_post')}}" method="POST">
             <div class="form-group">
                 <label for="image_url">Image URL</label>
-                <input type="url" class="form-control" id="image_url" aria-describedby="image url" placeholder="Enter a url for an image" name="image_url">
+                <input type="url" class="form-control" id="image_url" aria-describedby="image url" placeholder="The https:// url for an image. Must end in .jpg, .jpeg, or .png" name="image_url">
             </div>
             <div class="form-group">
                 <label for="body">Quote Body</label>

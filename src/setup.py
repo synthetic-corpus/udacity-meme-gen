@@ -4,7 +4,6 @@
 """
 import os
 from QuoteEngine import Ingestor
-from Initializer import init_from_s3
 
 
 def verify_result(func, path: str, *extensions) -> list[str]:
@@ -13,9 +12,7 @@ def verify_result(func, path: str, *extensions) -> list[str]:
     """
     all_files = func(path, *extensions)
     if len(all_files) == 0:
-        print(f'No files found for {extensions}. \
-              Running Initializer.')
-        init_from_s3()
+        print(f'No files found for {extensions}.')
         all_files = func(path, *extensions)
         return all_files
     return all_files
@@ -33,28 +30,6 @@ def get_files(path: str, *extensions: str) -> list[str]:
                 all_files.append(file_path)
     return all_files
 
-
-def setup():
-    """ Load all resources """
-
-    data_path = './_data'
-    imgs = verify_result(get_files, data_path, 'jpg', 'jpeg', 'png')
-
-    quote_files = get_files(data_path, 'txt', 'docx', 'csv', 'pdf')
-    print(quote_files)
-    all_quotes = []
-    for file_path in quote_files:
-        try:
-            more_quotes = Ingestor.parse(file_path)
-        except TypeError as e:
-            print(
-                (f'Invalid file type ${file_path}'),
-                (e)
-            )
-        else:
-            all_quotes.extend(more_quotes)
-
-    return all_quotes, imgs
 
 def setup_text():
     """ Sets up quotes only """
