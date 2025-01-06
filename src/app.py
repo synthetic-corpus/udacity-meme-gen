@@ -82,9 +82,11 @@ def meme_post():
             """ Sanitizing input, basically..."""
             url_path = f'https://{url_path}'
         return render_template('meme.html', path=url_path)
-    except (BadWebRequest, OSError):
+    except Exception as e:
         bad_url = params['image_url']
         print(f'Could not get image from {bad_url}')
+        oops = f'{type(e).__name__} Exception: - {e}'
+        cloud_logger.info(oops, f'using {bad_url}')
         return render_template('meme_form_error.html',
                                error_message='bad url in request'), 400
 

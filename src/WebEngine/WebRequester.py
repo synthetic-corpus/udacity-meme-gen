@@ -7,6 +7,7 @@ from PIL import Image, ImageFile
 from io import BytesIO
 from pathlib import Path
 from abc import ABC
+from cloudlogger import cloud_logger, log_wrapper
 
 
 class BadWebRequest(FileNotFoundError):
@@ -18,6 +19,7 @@ class WebRequestor(ABC):
     """ Contains Methods for Downloading Files """
     valid_file_types = []
 
+    @log_wrapper
     def get_file(self, url) -> bytes:
         """Finds a file from the internet.
             @return provides raw bytes of images file or error
@@ -39,6 +41,7 @@ class WebRequestor(ABC):
         else:
             raise BadWebRequest(f'Problem with url: {url}')
 
+    @log_wrapper
     def get_image(self, url) -> ImageFile:
         try:
             b = self.get_file(url)
