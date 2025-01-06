@@ -67,7 +67,7 @@ def meme_post():
     params = request.form
     requestor = ImageRequestor()
     try:
-        web_image = requestor.get_image(params['image_url'])
+        web_image, _ = requestor.get_image(params['image_url'])
         ID = uuid.uuid4()
         my_font = MemeGenerator.random_font()
         processed_image, image_name = meme.make_meme(
