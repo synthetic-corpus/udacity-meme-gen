@@ -2,9 +2,9 @@
     This includes the initial download of content from a
     hard coded public S3 Bucket.
 """
-import pickle
-import hashlib
 import requests
+from PIL import Image, ImageFile
+from io import BytesIO
 from pathlib import Path
 from abc import ABC
 
@@ -19,25 +19,14 @@ class WebRequestor(ABC):
     valid_file_types = []
 
     def __init__(self, save_folder):
-        """Save Folder is the location where files
+        """S3 Folder is the location where files
             Will be saved.
         """
         self.save_folder = save_folder
 
-    @classmethod
-    def name_by_hash(cls, data):
-        """Returns the name of the image file as a Hash.
-            Useful for uniqueness.
-        """
-        image_bytes = pickle.dumps(data)
-        hasher = hashlib.sha256()
-        hasher.update(image_bytes)
-        hash_name = hasher.hexdigest()
-        return hash_name
-
-    def get_file(self, url) -> str:
+    def get_file(self, url) -> bytes:
         """Finds a file from the internet.
-            @return provides a local path name of file.
+            @return provides raw bytes of images file or error
         """
         r = requests.get(url)
         if r.status_code == 200:
@@ -48,18 +37,21 @@ class WebRequestor(ABC):
                     f'{file_arrayed[1]} is an invalid type for this request!'
                     )
             else:
-                file_arrayed[0] = self.name_by_hash(r.content)
-                file_name = '.'.join(file_arrayed)
-                full_path = f'{self.save_folder}/{file_name}'
                 try:
-                    with open(full_path, 'wb') as file:
-                        file.write(r.content)
+                    return r.content  # bytes
                 except OSError as e:
-                    print(f'Failed to save file: at {full_path}')
+                    print(f'Failed to save file from URL {url}')
                     raise e  # other logic may need to handle error.
-            return full_path
         else:
             raise BadWebRequest(f'Problem with url: {url}')
+
+    def get_image(self, url) -> tuple[ImageFile, str]:
+        try:
+            b = self.get_file(url)
+            image = Image.open(BytesIO(b))
+            return (image, self.folder)
+        except Exception as e:
+            raise e
 
 
 class ImageRequestor(WebRequestor):
@@ -71,7 +63,7 @@ class ImageRequestor(WebRequestor):
 
 
 class TextRequestor(WebRequestor):
-    """Globally ensures that only certain image formats are downloaded"""
+    """Globally ensures that only certain text files are downloaded"""
     valid_file_types = ['csv', 'docx', 'txt', 'pdf']
 
     def __init__(self, save_folder):
