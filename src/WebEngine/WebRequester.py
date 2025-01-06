@@ -60,5 +60,5 @@ class TextRequestor(WebRequestor):
     """Globally ensures that only certain text files are downloaded"""
     valid_file_types = ['csv', 'docx', 'txt', 'pdf']
 
-    def __init__(self, save_folder):
-        super().__init__(save_folder)
+    def __init__(self):
+        super().__init__()
