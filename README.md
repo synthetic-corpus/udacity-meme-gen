@@ -23,7 +23,7 @@ _sources
 _textdata
 _fonts
 
-At the project's current stage, only _images, sources_, and _fonts can be configured. _textdata is for forthcoming features.
+At the project's current stage, only _images, sources_, and _fonts can be configured. _textdata is for loaded the source files which will be randomized quotes.
 
 ### Set Up Sources Images
 
@@ -32,7 +32,7 @@ Once the s3 bucket has been set up, upload any number .jpeg images into the _sou
 ### Setting up _fonts
 Place any number .ttf fonts in here. This software has only been tested with that format of a font. Memes will be generated from any random font from this part of the folder.
 
-### Adding Text files
+### Setting up text files for _textdata
 
 Each text file is a collection of quotes and their authors. These will be the randomized quotes for the memes. Valid formats are *.txt*, *.docx*, *.pdf*, and *.csv* and must be specifically formatted.
 
@@ -50,7 +50,7 @@ The author name must be letters and spaces only. Any characters can go before th
 >my fancy quote,author name  
 >more inspiring words,smart person
 
-The text files can be placed anywhere in the *_data* folder to be ingested. *You must commit them to your own fork of this repo at this time.*
+Upload any number of the file above into the S3 Bucket under _textdata. The text files will be copied from the S3 Bucket into a local ec2 instance.
 
 # Deployment
 
@@ -97,9 +97,9 @@ You can use any Linux based AMI. It must have pip3 and at least Python 3.9 insta
 Once CW is deployed, you should be able to access it on Load Balancer's public URL.
 
 # What is working?
-When you make a Meme, it is expected to appear in in the s3 Bucket's _images folder. It should also appear in the browser.
+When you make a Meme, it is expected to appear in in the s3 Bucket's _images folder. It should also appear in the browser. The Create button is alos now working.
+
+The Create Meme button is also working. Simply enter a url and the quote and author you want to generate. The url must begin in https:// and end with .jpeg, .jpg, or .png.
 
 # What is yet to be done?
-Quote files are currently hard coded into the repo, which is a cumbersome process. Next steps is to extract those from the s3 bucket.
-
-Creating a Meme from the Web Request URL is not recommended at this time. It will not store the source image or resulting Meme image properly.
+Project is nearly done, but will add a dynamo DB database to recording meme creation events. Additionally, will set up actual autoscaling rules. There are none at this time.
