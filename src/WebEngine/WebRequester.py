@@ -42,7 +42,7 @@ class WebRequestor(ABC):
             raise BadWebRequest(f'Problem with url: {url}')
 
     @log_wrapper
-    def get_image(self, url) -> tuple(ImageFile, str):
+    def get_image(self, url) -> tuple[ImageFile, str]:
         try:
             b = self.get_file(url)
             image = Image.open(BytesIO(b))
