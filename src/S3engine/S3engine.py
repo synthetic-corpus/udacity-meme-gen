@@ -17,7 +17,8 @@ class S3engine:
         self.my_s3 = boto3.resource('s3', region_name=aws_region)
         self.my_bucket = self.my_s3.Bucket(s3_Bucket)
 
-    @log_wrapper
+    # Uncomment @log_wrapper if more precise logging is needed.
+    # @log_wrapper
     def list_content(self, folder='_sources') -> list[tuple[str, str]]:
         """gets all content from specific s3 folder"""
         """Returns both a key and file name per file"""
@@ -33,7 +34,7 @@ class S3engine:
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
 
-    @log_wrapper
+    # @log_wrapper
     def get_image(self, object_key) -> tuple[ImageFile, str]:
         """Returns an ImageFile and original name of file."""
         try:
@@ -46,7 +47,7 @@ class S3engine:
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
 
-    @log_wrapper
+    # @log_wrapper
     def put_image(self, image: ImageFile,
                   object_name: str, folder='_images') -> None:
         """Takes an image file, its name, and saves it to s3"""
@@ -63,7 +64,7 @@ class S3engine:
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')
 
-    @log_wrapper
+    # @log_wrapper
     def get_file(self, file_key: str):
         """ Intended to get a generic file """
         s3_object = self.my_bucket.Object(file_key)
@@ -72,7 +73,7 @@ class S3engine:
         """ return the original name of the file too """
         return (file_stream, file_key.split("/")[1])
 
-    @log_wrapper
+    # @log_wrapper
     def load_fonts(self, folder='/usr/share/fonts') -> str:
         """ This call loads fonts from s3 to an ec2 instance """
         fonts = self.list_content('_fonts')
@@ -89,7 +90,7 @@ class S3engine:
         message = f'Succesfully loaded fonts: {output_array}'
         return message  # this is jut for easy logging
 
-    @log_wrapper
+    # @log_wrapper
     def load_quotes(self, path):
         """ Loads quotes into a local folder on ec2 """
         quotes = self.list_content('_textdata')
