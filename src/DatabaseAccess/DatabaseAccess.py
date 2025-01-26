@@ -38,7 +38,7 @@ class DatabaseAccess():
         """ Writes to the Dynamo DB Table"""
         item = {
             "ID": {
-                "S": id
+                "S": str(id)
             },
             "SourceFile": {
                 "S": source
@@ -56,7 +56,7 @@ class DatabaseAccess():
                 "SS": outputs
             },
             "CreatedAt": {
-                "S": datetime.now()
+                "S": str(datetime.now())
             }
         }
         try:
