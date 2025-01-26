@@ -7,6 +7,7 @@ from flask import Flask, render_template, make_response, request
 from MemeEngine import MemeGenerator
 from WebEngine import ImageRequestor, BadWebRequest
 from S3engine import S3engine
+from DatabaseAccess import DatabaseAccess
 from cloudlogger import cloud_logger
 from setup import setup_text
 
@@ -43,6 +44,10 @@ def meme_rand():
         if url_path.find('https://') == -1:
             """ Sanitizing input, basically..."""
             url_path = f'https://{url_path}'
+        DatabaseAccess.record_processing(
+            id=ID, source=img_key_tup[1],
+            text=quote.body, author=quote.author,
+            outputs=[image_name, url_path], font=my_font)
         return render_template('meme.html', path=url_path)
     except Exception as e:
         oops = f'{type(e).__name__} Exception: - {e}'
@@ -81,6 +86,10 @@ def meme_post():
         if url_path.find('https://') == -1:
             """ Sanitizing input, basically..."""
             url_path = f'https://{url_path}'
+        DatabaseAccess.record_processing(
+            id=ID, source=params['image_url'],
+            text=params['body'], author=params['author'],
+            outputs=[image_name, url_path], font=my_font)
         return render_template('meme.html', path=url_path)
     except Exception as e:
         bad_url = params['image_url']
