@@ -14,7 +14,7 @@ class DatabaseAccess():
                           ouputs: list[str],
                           font: str,
                           text: str = 'no text',
-                          author: str= 'no author',) -> None:
+                          author: str= 'no author') -> None:
         """ Logs the Text source file etc from Meme """
         message = f'UUID: {id} file {source} -> {ouputs} \
             with {text} - {author} ({font})'
