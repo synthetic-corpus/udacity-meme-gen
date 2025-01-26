@@ -7,15 +7,14 @@ import boto3
 from cloudlogger import log_wrapper, cloud_logger
 
 
-class DatabaseAccess(boto3.client):
+class DatabaseAccess():
     """ Creates an object that
     Writes to a table"""
     def __init__(self, table, aws_region):
         """ @table the name of the DynamoDBTable to write to"""
-        super().__init__(
+        self.client = boto3.client(
             service_name='dynamodb',
-            region_name=aws_region
-        )
+            region_name=aws_region)
         self.table = table
 
     @staticmethod
@@ -24,7 +23,7 @@ class DatabaseAccess(boto3.client):
                           outputs: list[str],
                           font: str,
                           text: str = 'no text',
-                          author: str= 'no author') -> None:
+                          author: str = 'no author') -> None:
         """ Logs to cloud logger
             Exists here for testing only.
         """
@@ -33,9 +32,9 @@ class DatabaseAccess(boto3.client):
         cloud_logger.info(message)
 
     @log_wrapper
-    def dynamo_putlog(self, id:str, source: str,outputs: list[str],
-                          font: str,text: str = 'no text',
-                          author: str= 'no author') -> None:
+    def dynamo_putlog(self, id: str, source: str, outputs: list[str],
+                      font: str, text: str = 'no text',
+                      author: str = 'no author') -> None:
         """ Writes to the Dynamo DB Table"""
         item = {
             "ID": {
@@ -55,9 +54,12 @@ class DatabaseAccess(boto3.client):
             },
             "Outputs": {
                 "SS": outputs
+            },
+            "CreatedAt": {
+                "S": datetime.now()
             }
         }
         try:
-            self.put_item(TableName=self.table,Item=item)
+            self.client.put_item(TableName=self.table, Item=item)
         except Exception as e:
             cloud_logger.error(f'{type(e).__name__} - {e}')

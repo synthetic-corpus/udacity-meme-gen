@@ -7,3 +7,4 @@ src/**/__pycache__
 src/_fonts/*
 # A folder where the developer might keep local notes.
 notes/ 
+src/testscript.py
