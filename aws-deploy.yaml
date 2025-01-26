@@ -171,6 +171,15 @@ Resources:
               Service: "ec2.amazonaws.com"
             Action: "sts:AssumeRole"
       Policies:
+        - PolicyName: "WriteDynamoDB"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - 'dynamodb:PutItem'
+                Resource:
+                  - !GetAtt DynamoDBLogTable.Arn
         - PolicyName: "ReadWriteS3"
           PolicyDocument: 
             Version: "2012-10-17"
@@ -204,6 +213,40 @@ Resources:
                 Resource: 
                   - !GetAtt CloudWatchLogsGroup.Arn
 
+  DynamoDBLogTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    Properties:
+      TableName: MemeDynmoLogs
+      TableClass: STANDARD
+      ProvisionedThroughput:
+           WriteCapacityUnits: 5
+           ReadCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeType: S
+          AttributeName: ID
+        - AttributeType: S
+          AttributeName: CreatedAt
+        - AttributeType: S
+          AttributeName: SourceFile
+      KeySchema:
+        - AttributeName: ID
+          KeyType: HASH
+        - AttributeName: CreatedAt
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: SourceFileIndex
+          KeySchema:
+            - AttributeName: SourceFile
+              KeyType: HASH
+            - AttributeName: CreatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+               WriteCapacityUnits: 5
+               ReadCapacityUnits: 5
+
   # EC2 Auto Scaling Group
   MyAutoScalingGroup:
     DeletionPolicy: Delete
@@ -225,6 +268,8 @@ Resources:
   MyLaunchTemplate:
     DeletionPolicy: Delete
     Type: AWS::EC2::LaunchTemplate
+    DependsOn: 
+      - DynamoDBLogTable
     Properties:
       LaunchTemplateData:
         IamInstanceProfile:
@@ -299,6 +344,7 @@ Resources:
             export SOURCE_REGION=${SourceRegion}
             export LOG_GROUP=${CWLogGroupName}
             export CDN=${CDNDomain}
+            export DYNAMO_TABLE=${!GettAtt DynamoDBLogTable.Arn}
             python3 app.py
 
 Outputs:

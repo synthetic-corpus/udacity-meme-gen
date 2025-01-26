@@ -23,6 +23,9 @@ print('now prepping source images...')
 imgs = s3access.list_content('_sources')
 print('now loading fonts...')
 s3access.load_fonts()
+print('making db client')
+databaseAccess = DatabaseAccess(os.environ['DYNAMO_TABLE'],
+                                os.environ['SOURCE_REGION'])
 
 
 @app.route('/')
@@ -44,10 +47,19 @@ def meme_rand():
         if url_path.find('https://') == -1:
             """ Sanitizing input, basically..."""
             url_path = f'https://{url_path}'
+
+        """ This writes to Cloud watch """
         DatabaseAccess.record_processing(
             id=ID, source=img_key_tup[1],
             text=quote.body, author=quote.author,
             outputs=[image_name, url_path], font=my_font)
+
+        """ This write to DynamoDB"""
+        databaseAccess.dynamo_putlog(
+            id=ID, source=img_key_tup[1],
+            text=quote.body, author=quote.author,
+            outputs=[image_name, url_path], font=my_font)
+
         return render_template('meme.html', path=url_path)
     except Exception as e:
         oops = f'{type(e).__name__} Exception: - {e}'
