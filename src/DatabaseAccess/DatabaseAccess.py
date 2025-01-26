@@ -11,11 +11,11 @@ class DatabaseAccess():
     @staticmethod
     def record_processing(id: str,
                           source: str,
-                          ouputs: list[str],
+                          outputs: list[str],
                           font: str,
                           text: str = 'no text',
                           author: str= 'no author') -> None:
         """ Logs the Text source file etc from Meme """
-        message = f'UUID: {id} file {source} -> {ouputs} \
+        message = f'UUID: {id} file {source} -> {outputs} \
             with {text} - {author} ({font})'
         cloud_logger.info(message)
