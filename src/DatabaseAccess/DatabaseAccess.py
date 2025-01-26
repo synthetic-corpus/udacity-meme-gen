@@ -3,11 +3,11 @@ Will Eventually Write events to DynamoDB.
 For now, it just sends messages to CloudFormations
 """
 from datetime import datetime
-import Boto3
+import boto3
 from cloudlogger import log_wrapper, cloud_logger
 
 
-class DatabaseAccess(Boto3.client):
+class DatabaseAccess(boto3.client):
     """ Creates an object that
     Writes to a table"""
     def __init__(self, table, aws_region):
