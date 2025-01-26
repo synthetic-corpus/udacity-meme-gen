@@ -98,10 +98,19 @@ def meme_post():
         if url_path.find('https://') == -1:
             """ Sanitizing input, basically..."""
             url_path = f'https://{url_path}'
+
+        """This Writes to Cloud Watch"""
         DatabaseAccess.record_processing(
             id=ID, source=params['image_url'],
             text=params['body'], author=params['author'],
             outputs=[image_name, url_path], font=my_font)
+
+        """This Writes to Dynamod DB"""
+        databaseAccess.dynamo_putlog(
+            id=ID, source=params['image_url'],
+            text=params['body'], author=params['author'],
+            outputs=[image_name, url_path], font=my_font)
+
         return render_template('meme.html', path=url_path)
     except Exception as e:
         bad_url = params['image_url']
