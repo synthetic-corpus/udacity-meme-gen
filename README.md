@@ -101,5 +101,7 @@ When you make a Meme, it is expected to appear in in the s3 Bucket's _images fol
 
 The Create Meme button is also working. Simply enter a url and the quote and author you want to generate. The url must begin in https:// and end with .jpeg, .jpg, or .png.
 
+The project also creates a Dynamo DB table that will record a log of each meme created.
+
 # What is yet to be done?
-Project is nearly done, but will add a dynamo DB database to recording meme creation events. Additionally, will set up actual autoscaling rules. There are none at this time.
+Last thing to do is set up actual autoscaling rules.
