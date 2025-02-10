@@ -104,4 +104,4 @@ The Create Meme button is also working. Simply enter a url and the quote and aut
 The project also creates a Dynamo DB table that will record a log of each meme created.
 
 # What is yet to be done?
-Last thing to do is set up actual autoscaling rules.
+Auto scaling policy is set and is working. This project is 'complete'.
