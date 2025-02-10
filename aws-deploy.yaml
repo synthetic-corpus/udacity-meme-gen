@@ -252,7 +252,8 @@ Resources:
     DeletionPolicy: Delete
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      MinSize: 1
+      AutoScalingGroupName: MyAutoScaler
+      MinSize: 2
       MaxSize: 5
       DesiredCapacity: 2
       TargetGroupARNs:
@@ -263,6 +264,27 @@ Resources:
       LaunchTemplate: 
         LaunchTemplateId: !Ref MyLaunchTemplate
         Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+      MetricsCollection:
+           - Granularity: '1Minute'
+             Metrics:
+              - GroupDesiredCapacity
+              - GroupInServiceInstances
+              - GroupMinSize
+              - GroupMaxSize
+              - GroupTotalInstances
+
+  # The Auto scaling policy
+  AutoScalePolicyByCPU:
+    DeletionPolicy: Delete
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      PolicyType: TargetTrackingScaling
+      AutoScalingGroupName: !GetAtt MyAutoScalingGroup.AutoScalingGroupName
+      EstimatedInstanceWarmup: 320
+      TargetTrackingConfiguration:
+        TargetValue: 80 # percent of CPU usage
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
 
   # Launch Configuration
   MyLaunchTemplate:
@@ -272,6 +294,8 @@ Resources:
       - DynamoDBLogTable
     Properties:
       LaunchTemplateData:
+        Monitoring:
+          Enabled: True
         IamInstanceProfile:
           Arn: !GetAtt EC2InstanceProfile.Arn
         InstanceType: !Ref InstanceType
