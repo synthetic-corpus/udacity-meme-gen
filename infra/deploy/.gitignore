@@ -1,0 +1,25 @@
+# Pulumi state and secrets
+.pulumi/
+*.bak
+# If you use local state, it might create these:
+bin/
+obj/
+
+# Go specific
+# Compiled binaries
+pulumi-resource-*
+main
+__debug_bin
+
+# Dependency directories
+vendor/
+
+# Environment and Secrets
+.env
+.env.*
+# Pulumi login/credentials if stored locally
+.pulumi/credentials.json
+
+# Standard OS files
+.DS_Store
+Thumbs.db

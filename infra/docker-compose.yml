@@ -1,0 +1,21 @@
+services:
+  terraform:
+    image: hashicorp/terraform:1.6.2
+    volumes:
+      - ./setup:/tf/setup
+      - ./alpha:/tf/alpha
+    working_dir: /tf
+
+  pulumi:
+    image: pulumi/pulumi-go:latest
+    volumes:
+      - ./deploy:/proj
+    working_dir: /proj
+    environment:
+      - PULUMI_CONFIG_PASSPHRASE=${PULUMI_CONFIG_PASSPHRASE}
+      - PULUMI_BACKEND_URL=file:///proj
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-west-2}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - TARGET_VPC_NAME=${TARGET_VPC_NAME}

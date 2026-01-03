@@ -1,0 +1,7 @@
+name: udacity-meme-gen
+description: a random meme generator
+runtime: go
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-go
