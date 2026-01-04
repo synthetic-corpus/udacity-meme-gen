@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+	"github.com/pulumi/pulumi-docker/sdk/v4/go/docker"
 )
 
 func main() {
@@ -46,8 +48,48 @@ func main() {
 			return err
 		}
 
-		// Export the new Subnet ID
+		// 1. Retrieve the ECR Repository URL from the environment variable
+		ecrRepoUrl := os.Getenv("ECR_WEB_REPO")
+		if ecrRepoUrl == "" {
+			return fmt.Errorf("ECR_WEB_REPO environment variable is not set")
+		}
+
+		// 2. Create Docker provider for building and pushing images
+		// The Docker provider needs access to the Docker daemon (mounted via docker socket)
+		dockerProvider, err := docker.NewProvider(ctx, "docker-provider", &docker.ProviderArgs{
+			// When running in Docker, the provider will use the mounted Docker socket
+		})
+		if err != nil {
+			return err
+		}
+
+		// 3. Extract the server URL from the ECR repository URL (domain only, without the repo path)
+		// ECR URL format: account.dkr.ecr.region.amazonaws.com/repo-name
+		// Server should be just the domain part
+		ecrServer := ecrRepoUrl
+		if idx := strings.LastIndex(ecrRepoUrl, "/"); idx != -1 {
+			ecrServer = ecrRepoUrl[:idx]
+		}
+
+		// 4. Build and Push the Docker image from src-test folder
+		// The src-test folder is mounted at /proj/src-test in the container
+		// Since working_dir is /proj, we reference it as "src-test"
+		image, err := docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{
+			Build: &docker.DockerBuildArgs{
+				Context: pulumi.String("src-test"), // Path relative to working directory /proj
+			},
+			ImageName: pulumi.String(ecrRepoUrl + ":latest"),
+			Registry: &docker.RegistryArgs{
+				Server: pulumi.String(ecrServer),
+			},
+		}, pulumi.Provider(dockerProvider))
+		if err != nil {
+			return err
+		}
+
+		// Export the new Subnet ID and the ECR Repository URL
 		ctx.Export("subnetId", subnet.ID())
+		ctx.Export("fullImageName", image.ImageName)
 		return nil
 	})
 }
