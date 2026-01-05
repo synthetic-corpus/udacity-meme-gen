@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
+	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/eks"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/iam"
@@ -167,6 +168,77 @@ func main() {
 				return err
 			}
 		}
+
+		// 6a. Create CloudWatch Log Group
+		logGroup, err := cloudwatch.NewLogGroup(ctx, "meme-generator-logs", &cloudwatch.LogGroupArgs{
+			Name:              pulumi.String("Meme-generator-logs"),
+			RetentionInDays:    pulumi.Int(7),
+		}, pulumi.Provider(awsProvider))
+		if err != nil {
+			return err
+		}
+
+		// 6b. Create CloudWatch Logs policy for EKS cluster role
+		clusterLogsPolicy, err := iam.NewRolePolicy(ctx, "eks-cluster-cloudwatch-logs-policy", &iam.RolePolicyArgs{
+			Role: eksClusterRole.Name,
+			Policy: pulumi.All(logGroup.Arn).ApplyT(func(args []interface{}) (string, error) {
+				logGroupArn := args[0].(string)
+				// Allow access to the log group and all log streams under it
+				policy := fmt.Sprintf(`{
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Action": [
+							"logs:PutLogEvents",
+							"logs:CreateLogGroup",
+							"logs:CreateLogStream",
+							"logs:DescribeLogStreams",
+							"logs:DescribeLogGroups"
+						],
+						"Resource": [
+							"%s",
+							"%s:*"
+						]
+					}]
+				}`, logGroupArn, logGroupArn)
+				return policy, nil
+			}).(pulumi.StringOutput),
+		}, pulumi.Provider(awsProvider))
+		if err != nil {
+			return err
+		}
+
+		// 6c. Create CloudWatch Logs policy for EKS node group role
+		nodeLogsPolicy, err := iam.NewRolePolicy(ctx, "eks-node-cloudwatch-logs-policy", &iam.RolePolicyArgs{
+			Role: eksNodeRole.Name,
+			Policy: pulumi.All(logGroup.Arn).ApplyT(func(args []interface{}) (string, error) {
+				logGroupArn := args[0].(string)
+				// Allow access to the log group and all log streams under it
+				policy := fmt.Sprintf(`{
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Action": [
+							"logs:PutLogEvents",
+							"logs:CreateLogGroup",
+							"logs:CreateLogStream",
+							"logs:DescribeLogStreams",
+							"logs:DescribeLogGroups"
+						],
+						"Resource": [
+							"%s",
+							"%s:*"
+						]
+					}]
+				}`, logGroupArn, logGroupArn)
+				return policy, nil
+			}).(pulumi.StringOutput),
+		}, pulumi.Provider(awsProvider))
+		if err != nil {
+			return err
+		}
+		_ = clusterLogsPolicy
+		_ = nodeLogsPolicy
 
 		// 7. Create security group for EKS pods
 		eksSecurityGroup, err := ec2.NewSecurityGroup(ctx, "eks-pod-security-group", &ec2.SecurityGroupArgs{
@@ -375,7 +447,7 @@ users:
 			return err
 		}
 
-		// Export the Subnet IDs, ECR Repository URL, and EKS cluster info
+		// Export the Subnet IDs, ECR Repository URL, EKS cluster info, and CloudWatch Log Group
 		ctx.Export("subnetIdA", subnetA.ID())
 		ctx.Export("subnetIdB", subnetB.ID())
 		ctx.Export("fullImageName", image.ImageName)
@@ -384,6 +456,7 @@ users:
 		ctx.Export("nodeGroupName", nodeGroup.NodeGroupName)
 		ctx.Export("deploymentName", deployment.Metadata.Name())
 		ctx.Export("serviceName", service.Metadata.Name())
+		ctx.Export("logGroupName", logGroup.Name)
 		return nil
 	})
 }
