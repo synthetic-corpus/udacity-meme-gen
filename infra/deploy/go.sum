@@ -156,6 +156,8 @@ github.com/pulumi/pulumi-aws/sdk/v6 v6.83.2 h1:KrV04/k8+PRfkX/90pLm/jug6tfc9YeQH
 github.com/pulumi/pulumi-aws/sdk/v6 v6.83.2/go.mod h1:520DDoW2zBYVWwwAT8qt/9VhNoBcDIslDljzE8/O080=
 github.com/pulumi/pulumi-docker/sdk/v4 v4.5.5 h1:7OjAfgLz5PAy95ynbgPAlWls5WBe4I/QW/61TdPWRlQ=
 github.com/pulumi/pulumi-docker/sdk/v4 v4.5.5/go.mod h1:XZKLFXbw13olxuztlWnmVUPYZp2a+BqzqhuMl0j/Ow8=
+github.com/pulumi/pulumi-kubernetes/sdk/v4 v4.9.1 h1:dgazi5bI3Vxz+aLuH+DxRqKxPWGaFIkT3fIepHr7h0g=
+github.com/pulumi/pulumi-kubernetes/sdk/v4 v4.9.1/go.mod h1:O8hanLXCEXiyzA8gIeME5o/SmJ39Vyy9wLcBYCFpOp0=
 github.com/pulumi/pulumi/sdk/v3 v3.214.0 h1:MBUrjhaY7i9RmEQddyH/HR0kvF5Kxl3WT+/Ra9wV3YM=
 github.com/pulumi/pulumi/sdk/v3 v3.214.0/go.mod h1:Bn5Z9Rzp1lPqdAccaB+F2ivUBiamEl2TNR3Gg/h7iLs=
 github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
