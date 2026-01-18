@@ -448,11 +448,21 @@ users:
 						Containers: corev1.ContainerArray{
 							&corev1.ContainerArgs{
 								Name:  pulumi.String("meme-generator"),
-								Image: image.ImageName,
+								Image: image.ImageName, // Docker image from ECR (built and pushed earlier)
 								Ports: corev1.ContainerPortArray{
 									&corev1.ContainerPortArgs{
 										ContainerPort: pulumi.Int(5000),
 										Name:          pulumi.String("http"),
+									},
+								},
+								Resources: &corev1.ResourceRequirementsArgs{
+									Requests: pulumi.StringMap{
+										"cpu":    pulumi.String("100m"),    // 0.1 CPU cores
+										"memory": pulumi.String("128Mi"),   // 128 MiB memory
+									},
+									Limits: pulumi.StringMap{
+										"cpu":    pulumi.String("500m"),    // 0.5 CPU cores max
+										"memory": pulumi.String("512Mi"),   // 512 MiB memory max
 									},
 								},
 							},
