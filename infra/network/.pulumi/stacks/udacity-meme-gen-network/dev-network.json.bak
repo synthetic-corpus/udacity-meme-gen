@@ -1,0 +1,6 @@
+{
+    "version": 0,
+    "checkpoint": {
+        "stack": "organization/udacity-meme-gen-network/dev-network"
+    }
+}
