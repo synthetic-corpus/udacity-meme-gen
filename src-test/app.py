@@ -35,6 +35,7 @@ def meme_post():
 
         return render_template('meme.html', path=url_path)
     except Exception as e:
+        """ This comment exists to change a hash at deployment """
         bad_url = params['image_url']
         print(f'Could not get image from {bad_url}')
         oops = f'{type(e).__name__} Exception: - {e}'

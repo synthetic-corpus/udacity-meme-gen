@@ -24,3 +24,5 @@ vendor/
 .DS_Store
 Thumbs.db
 
+# artefacts from testings
+src*
