@@ -38,37 +38,25 @@ func main() {
 		if err != nil {
 			return err
 		}
-		// Create a new VPC subnet
 		// Get the VPC ID from the environment variable
 		vpcId := os.Getenv("TARGET_VPC_NAME")
 		if vpcId == "" {
 			return fmt.Errorf("TARGET_VPC_NAME environment variable is required")
 		}
 
-		// Create the first subnet in us-west-2a
-		subnetA, err := ec2.NewSubnet(ctx, "pulumi-managed-subnet-a", &ec2.SubnetArgs{
-			VpcId:            pulumi.String(vpcId),
-			CidrBlock:        pulumi.String("10.8.101.0/24"),
-			AvailabilityZone: pulumi.String("us-west-2a"),
-			Tags: pulumi.StringMap{
-				"Name": pulumi.String("Pulumi-Subnet-A"),
-			},
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			return err
+		// Get subnet IDs from environment variables
+		// Public subnets for ALB
+		publicSubnetA := os.Getenv("PUBLIC_SUBNET_A")
+		publicSubnetB := os.Getenv("PUBLIC_SUBNET_B")
+		if publicSubnetA == "" || publicSubnetB == "" {
+			return fmt.Errorf("PUBLIC_SUBNET_A and PUBLIC_SUBNET_B environment variables are required")
 		}
 
-		// Create the second subnet in us-west-2b (different AZ)
-		subnetB, err := ec2.NewSubnet(ctx, "pulumi-managed-subnet-b", &ec2.SubnetArgs{
-			VpcId:            pulumi.String(vpcId),
-			CidrBlock:        pulumi.String("10.8.102.0/24"), // Different CIDR block
-			AvailabilityZone: pulumi.String("us-west-2b"),
-			Tags: pulumi.StringMap{
-				"Name": pulumi.String("Pulumi-Subnet-B"),
-			},
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			return err
+		// Private subnets for EKS cluster
+		privateSubnetA := os.Getenv("PRIVATE_SUBNET_A")
+		privateSubnetB := os.Getenv("PRIVATE_SUBNET_B")
+		if privateSubnetA == "" || privateSubnetB == "" {
+			return fmt.Errorf("PRIVATE_SUBNET_A and PRIVATE_SUBNET_B environment variables are required")
 		}
 
 		// 1. Retrieve the ECR Repository URL from the environment variable
@@ -338,12 +326,13 @@ func main() {
 		}
 
 		// 8. Create EKS cluster with OIDC enabled for IRSA
+		// EKS cluster uses private subnets
 		cluster, err := eks.NewCluster(ctx, "meme-generator-cluster", &eks.ClusterArgs{
 			RoleArn: eksClusterRole.Arn,
 			VpcConfig: &eks.ClusterVpcConfigArgs{
 				SubnetIds: pulumi.StringArray{
-					subnetA.ID(),
-					subnetB.ID(),
+					pulumi.String(privateSubnetA),
+					pulumi.String(privateSubnetB),
 				},
 				SecurityGroupIds: pulumi.StringArray{
 					eksSecurityGroup.ID(),
@@ -356,12 +345,13 @@ func main() {
 		}
 
 		// 9. Create EKS node group
+		// Node group uses private subnets
 		nodeGroup, err := eks.NewNodeGroup(ctx, "meme-generator-node-group", &eks.NodeGroupArgs{
 			ClusterName:   cluster.Name,
 			NodeRoleArn:   eksNodeRole.Arn,
 			SubnetIds: pulumi.StringArray{
-				subnetA.ID(),
-				subnetB.ID(),
+				pulumi.String(privateSubnetA),
+				pulumi.String(privateSubnetB),
 			},
 			ScalingConfig: &eks.NodeGroupScalingConfigArgs{
 				DesiredSize: pulumi.Int(2),
@@ -499,12 +489,13 @@ users:
 		}
 
 		// 13. Create Application Load Balancer
+		// ALB uses public subnets for internet-facing access
 		loadBalancer, err := lb.NewLoadBalancer(ctx, "meme-generator-alb", &lb.LoadBalancerArgs{
 			Name:             pulumi.String("meme-generator-alb"),
 			LoadBalancerType: pulumi.String("application"),
 			Subnets: pulumi.StringArray{
-				subnetA.ID(),
-				subnetB.ID(),
+				pulumi.String(publicSubnetA),
+				pulumi.String(publicSubnetB),
 			},
 			SecurityGroups: pulumi.StringArray{
 				albSecurityGroup.ID(),
@@ -919,8 +910,10 @@ users:
 		}
 
 		// Export the Subnet IDs, ECR Repository URL, EKS cluster info, CloudWatch Log Group, ALB info, and Ingress
-		ctx.Export("subnetIdA", subnetA.ID())
-		ctx.Export("subnetIdB", subnetB.ID())
+		ctx.Export("publicSubnetA", pulumi.String(publicSubnetA))
+		ctx.Export("publicSubnetB", pulumi.String(publicSubnetB))
+		ctx.Export("privateSubnetA", pulumi.String(privateSubnetA))
+		ctx.Export("privateSubnetB", pulumi.String(privateSubnetB))
 		ctx.Export("fullImageName", image.ImageName)
 		ctx.Export("clusterName", cluster.Name)
 		ctx.Export("clusterEndpoint", cluster.Endpoint)

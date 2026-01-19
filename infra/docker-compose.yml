@@ -28,6 +28,10 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - TARGET_VPC_NAME=${TARGET_VPC_NAME}
       - ECR_WEB_REPO=${ECR_WEB_REPO}
+      - PUBLIC_SUBNET_A=${PUBLIC_SUBNET_A}
+      - PUBLIC_SUBNET_B=${PUBLIC_SUBNET_B}
+      - PRIVATE_SUBNET_A=${PRIVATE_SUBNET_A}
+      - PRIVATE_SUBNET_B=${PRIVATE_SUBNET_B}
 
   pulumi-network:
     image: pulumi/pulumi-go:latest
