@@ -1,0 +1,8 @@
+name: udacity-meme-gen-push-image
+description: Build and push Docker image to ECR
+runtime: go
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-go
+

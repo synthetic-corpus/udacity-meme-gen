@@ -48,3 +48,20 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - TARGET_VPC_NAME=${TARGET_VPC_NAME}
       - ECR_WEB_REPO=${ECR_WEB_REPO}
+
+  push-image: # does nothing except push an image
+    image: pulumi/pulumi-go:latest
+    volumes:
+      - ./push-image:/proj
+      - ../src-test:/proj/src-test  # Mount src-test from project root
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket for Docker-in-Docker
+    working_dir: /proj
+    entrypoint: ["/bin/sh", "/proj/entrypoint.sh"]
+    environment:
+      - PULUMI_CONFIG_PASSPHRASE=${PULUMI_CONFIG_PASSPHRASE}
+      - PULUMI_BACKEND_URL=file:///proj
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-west-2}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - ECR_WEB_REPO=${ECR_WEB_REPO}
