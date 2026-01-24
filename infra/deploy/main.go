@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
+	"os/exec"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
@@ -22,7 +22,14 @@ import (
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
-		// 1. Define the Explicit Provider with Default Tags
+		// Get AWS region
+		awsRegion := os.Getenv("AWS_REGION")
+		if awsRegion == "" {
+			awsRegion = "us-west-2"
+		}
+
+		// Defines a customer provider 
+		// This is fundamentally to make sure tags are consistent.
 		awsProvider, err := aws.NewProvider(ctx, "custom-provider", &aws.ProviderArgs{
 			Region: pulumi.String(os.Getenv("AWS_REGION")),
 			DefaultTags: &aws.ProviderDefaultTagsArgs{
@@ -38,13 +45,13 @@ func main() {
 		if err != nil {
 			return err
 		}
-		// Get the VPC ID from the environment variable
+		// VPC  and Subnet must come from Environment variables.
+		// see the Network folder for more details on how to set up network.
 		vpcId := os.Getenv("TARGET_VPC_NAME")
 		if vpcId == "" {
 			return fmt.Errorf("TARGET_VPC_NAME environment variable is required")
 		}
 
-		// Get subnet IDs from environment variables
 		// Public subnets for ALB
 		publicSubnetA := os.Getenv("PUBLIC_SUBNET_A")
 		publicSubnetB := os.Getenv("PUBLIC_SUBNET_B")
@@ -59,22 +66,16 @@ func main() {
 			return fmt.Errorf("PRIVATE_SUBNET_A and PRIVATE_SUBNET_B environment variables are required")
 		}
 
-		// 1. Retrieve the ECR Repository URL from the environment variable
+		// ==== Docker Section ====
+		// Pushes an image to docker iff the files within the folder have changed
+		// since the last push.
+		// Relies on Hashes to do that.
 		ecrRepoUrl := os.Getenv("ECR_WEB_REPO")
 		if ecrRepoUrl == "" {
 			return fmt.Errorf("ECR_WEB_REPO environment variable is not set")
 		}
 
-		// 2. Create Docker provider for building and pushing images
-		// The Docker provider needs access to the Docker daemon (mounted via docker socket)
-		dockerProvider, err := docker.NewProvider(ctx, "docker-provider", &docker.ProviderArgs{
-			// When running in Docker, the provider will use the mounted Docker socket
-		})
-		if err != nil {
-			return err
-		}
-
-		// 3. Extract the server URL from the ECR repository URL (domain only, without the repo path)
+		// Extract the server URL from the ECR repository URL (domain only, without the repo path)
 		// ECR URL format: account.dkr.ecr.region.amazonaws.com/repo-name
 		// Server should be just the domain part
 		ecrServer := ecrRepoUrl
@@ -82,21 +83,100 @@ func main() {
 			ecrServer = ecrRepoUrl[:idx]
 		}
 
-		// 4. Build and Push the Docker image from src-test folder
-		// The src-test folder is mounted at /proj/src-test in the container
-		// Since working_dir is /proj, we reference it as "src-test"
-		image, err := docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{
-			Build: &docker.DockerBuildArgs{
-				Context: pulumi.String("src-test"), // Path relative to working directory /proj
-			},
-			ImageName: pulumi.String(ecrRepoUrl + ":latest"),
-			Registry: &docker.RegistryArgs{
-				Server: pulumi.String(ecrServer),
-			},
-		}, pulumi.Provider(dockerProvider))
+		// Authenticate Docker with ECR using AWS CLI
+		// This runs: aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <ecr-server>
+		ctx.Log.Info(fmt.Sprintf("Authenticating Docker with ECR: %s", ecrServer), nil)
+		
+		// Get ECR password
+		getPasswordCmd := exec.Command("aws", "ecr", "get-login-password", "--region", awsRegion)
+		getPasswordCmd.Env = os.Environ()
+		passwordOutput, err := getPasswordCmd.Output()
+		if err != nil {
+			return fmt.Errorf("failed to get ECR login password: %w. Make sure AWS CLI is installed and AWS credentials are configured", err)
+		}
+		password := strings.TrimSpace(string(passwordOutput))
+
+		// Login to Docker registry
+		dockerLoginCmd := exec.Command("docker", "login", "--username", "AWS", "--password-stdin", ecrServer)
+		dockerLoginCmd.Env = os.Environ()
+		dockerLoginCmd.Stdin = strings.NewReader(password)
+		dockerLoginCmd.Stdout = os.Stdout
+		dockerLoginCmd.Stderr = os.Stderr
+		if err := dockerLoginCmd.Run(); err != nil {
+			return fmt.Errorf("failed to login to ECR: %w", err)
+		}
+
+		ctx.Log.Info("Successfully authenticated with ECR", nil)
+
+		// Create Docker provider for building and pushing images
+		dockerProvider, err := docker.NewProvider(ctx, "docker-provider", &docker.ProviderArgs{
+			// When running in Docker, the provider will use the mounted Docker socket
+		})
 		if err != nil {
 			return err
 		}
+
+		
+
+		// === Determines from here, should we even push? Pushes if yes ===
+		currentHash, err := hashDir("/proj/src-test")
+		if err != nil {
+			return fmt.Errorf("failed to hash directory: %w", err)
+		}
+		ctx.Log.Info(fmt.Sprintf("Current directory hash: %s", currentHash), nil)
+
+		var image *docker.Image
+		hashExists, err := checkIfHashExists(ctx, ecrRepoUrl, currentHash)
+
+		if err == nil {
+			if hashExists == false {
+			// Build and Push the Docker image from src-test folder
+			// Store hash as build argument for reference
+			ctx.Log.Info("naming image: " + fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash), nil)
+			image, err = docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{
+				Build: &docker.DockerBuildArgs{
+					Context: pulumi.String("src-test"), // Path relative to working directory /proj
+					Args: pulumi.StringMap{
+						"SOURCE_HASH": pulumi.String(currentHash),
+					},
+				},
+				ImageName: pulumi.String(fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash)),
+				Registry: &docker.RegistryArgs{
+					Server: pulumi.String(ecrServer),
+				},
+			}, pulumi.Provider(dockerProvider))
+			if err != nil {
+				return err
+			}
+
+			_, err = docker.NewTag(ctx, "my-image-latest", &docker.TagArgs{
+				// this tags the image created in the above lines.
+				// does not actually create a new one, or re-build. Pulumi smart.
+				SourceImage: image.ImageName,
+				TargetImage: pulumi.String(fmt.Sprintf("%s:latest", ecrRepoUrl)),
+			})
+			if err != nil {
+				return err
+			}
+
+			ctx.Log.Info("Image built and pushed successfully", nil)
+			} else {
+				ctx.Log.Info(fmt.Sprintf("Hash unchanged (%s) - skipping build", currentHash), nil)
+				// Export that we skipped, but still export the image name for reference
+				// define the image by grabbing the latest instead
+			
+				ctx.Export("imageName", pulumi.String(ecrRepoUrl+":latest"))
+				ctx.Export("ecrRepoUrl", pulumi.String(ecrRepoUrl))
+				ctx.Export("sourceHash", pulumi.String(currentHash))
+				ctx.Export("skipped", pulumi.Bool(true))
+				return nil
+			}
+		}else{
+			// we had some kind of error in getting the image from URL
+			return err
+		}
+
+		latestImageName := pulumi.Sprintf("%s:latest", ecrRepoUrl)
 
 		// ===== EKS Cluster Setup =====
 		
@@ -365,12 +445,6 @@ func main() {
 			return err
 		}
 
-		// 10. Create Kubernetes provider
-		// Construct kubeconfig from cluster details
-		awsRegion := os.Getenv("AWS_REGION")
-		if awsRegion == "" {
-			awsRegion = "us-west-2"
-		}
 		
 		kubeconfig := pulumi.All(cluster.Endpoint, cluster.CertificateAuthority, cluster.Name).ApplyT(func(args []interface{}) (string, error) {
 			endpoint := args[0].(string)
@@ -438,7 +512,8 @@ users:
 						Containers: corev1.ContainerArray{
 							&corev1.ContainerArgs{
 								Name:  pulumi.String("meme-generator"),
-								Image: image.ImageName, // Docker image from ECR (built and pushed earlier)
+								ImagePullPolicy: pulumi.String("Always"),
+								Image: latestImageName, // Docker image from ECR (built and pushed earlier)
 								Ports: corev1.ContainerPortArray{
 									&corev1.ContainerPortArgs{
 										ContainerPort: pulumi.Int(5000),

@@ -19,6 +19,7 @@ services:
       - ../src-test:/proj/src-test  # Mount src-test from project root
       - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket for Docker-in-Docker
     working_dir: /proj
+    entrypoint: ["/bin/sh", "/proj/entrypoint.sh"]
     environment:
       - PULUMI_CONFIG_PASSPHRASE=${PULUMI_CONFIG_PASSPHRASE}
       - PULUMI_BACKEND_URL=file:///proj
