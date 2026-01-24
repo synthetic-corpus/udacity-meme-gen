@@ -418,7 +418,7 @@ func main() {
 					eksSecurityGroup.ID(),
 				},
 			},
-			Version: pulumi.String("1.28"),
+			Version: pulumi.String("1.28"), // TODO This cluster will not deploy. Check AWS docs.
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
 			return err
@@ -427,6 +427,7 @@ func main() {
 		// 9. Create EKS node group
 		// Node group uses private subnets
 		nodeGroup, err := eks.NewNodeGroup(ctx, "meme-generator-node-group", &eks.NodeGroupArgs{
+			// TODO cluster version "1.28" seems to fail. Review all this in AWS Docs next
 			ClusterName:   cluster.Name,
 			NodeRoleArn:   eksNodeRole.Arn,
 			SubnetIds: pulumi.StringArray{
