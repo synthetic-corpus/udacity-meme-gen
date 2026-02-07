@@ -160,23 +160,26 @@ func main() {
 			}
 
 			ctx.Log.Info("Image built and pushed successfully", nil)
-			} else {
+			}else{
 				ctx.Log.Info(fmt.Sprintf("Hash unchanged (%s) - skipping build", currentHash), nil)
-				// Export that we skipped, but still export the image name for reference
-				// define the image by grabbing the latest instead
+				image, err = docker.GetImage(ctx, "meme-generator-app-existing", 
+        			pulumi.ID(fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash)), nil)
+    				if err != nil {
+					return err
+					}
 			
 				ctx.Export("imageName", pulumi.String(ecrRepoUrl+":latest"))
 				ctx.Export("ecrRepoUrl", pulumi.String(ecrRepoUrl))
 				ctx.Export("sourceHash", pulumi.String(currentHash))
 				ctx.Export("skipped", pulumi.Bool(true))
-				return nil
+
 			}
 		}else{
 			// we had some kind of error in getting the image from URL
 			return err
 		}
 
-		latestImageName := pulumi.Sprintf("%s:latest", ecrRepoUrl)
+		//latestImageName := pulumi.Sprintf("%s:latest", ecrRepoUrl)
 
 		// ===== EKS Cluster Setup =====
 		
@@ -514,7 +517,7 @@ users:
 							&corev1.ContainerArgs{
 								Name:  pulumi.String("meme-generator"),
 								ImagePullPolicy: pulumi.String("Always"),
-								Image: latestImageName, // Docker image from ECR (built and pushed earlier)
+								Image: image.ImageName, // Docker image from ECR (built and pushed earlier)
 								Ports: corev1.ContainerPortArray{
 									&corev1.ContainerPortArgs{
 										ContainerPort: pulumi.Int(5000),
