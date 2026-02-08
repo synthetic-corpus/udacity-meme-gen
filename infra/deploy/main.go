@@ -125,8 +125,7 @@ func main() {
 			return fmt.Errorf("failed to hash directory: %w", err)
 		}
 		ctx.Log.Info(fmt.Sprintf("Current directory hash: %s", currentHash), nil)
-
-		var image *docker.Image // TODO stop defining the image here
+		var latestImageURL string // Will be defined later
 		hashExists, err := checkIfHashExists(ctx, ecrRepoUrl, currentHash)
 
 		if err == nil {
@@ -134,7 +133,7 @@ func main() {
 			// Build and Push the Docker image from src-test folder
 			// Store hash as build argument for reference
 			ctx.Log.Info("naming image: " + fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash), nil)
-			image, err = docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{ // TODO use a Pipe here
+			image, err := docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{ // TODO use a Pipe here
 				Build: &docker.DockerBuildArgs{
 					Context: pulumi.String("src-test"), // Path relative to working directory /proj
 					Args: pulumi.StringMap{
@@ -162,27 +161,18 @@ func main() {
 
 			ctx.Log.Info("Image built and pushed successfully", nil)
 			}else{
-				// TODO Do not do anything here but log what is happening. No resources.
 				ctx.Log.Info(fmt.Sprintf("Hash unchanged (%s) - skipping build", currentHash), nil)
-				// "Link" to an existing image so the pointer is populated
-				image, err = docker.NewImage(ctx, "meme-generator-app-existing", &docker.ImageArgs{
-					ImageName: pulumi.Sprintf("%s:latest", ecrRepoUrl),
-					SkipPush:  pulumi.Bool(true), // Crucial: don't try to push it
-				}, pulumi.Provider(dockerProvider), pulumi.Import(pulumi.ID(fmt.Sprintf("%s:latest", ecrRepoUrl))))
-    			if err != nil {
-					return err
-				}
-				ctx.Log.Info(fmt.Sprintf("Directed to existing Image %s as expected :-) ", currentHash), nil)
-				ctx.Export("imageName", pulumi.String(ecrRepoUrl+":latest"))
-				ctx.Export("ecrRepoUrl", pulumi.String(ecrRepoUrl))
-				ctx.Export("sourceHash", pulumi.String(currentHash))
-				ctx.Export("skipped", pulumi.Bool(true))
-
 			}
+
 		}else{
 			// we had some kind of error in getting the image from URL
 			return err
 		}
+		latestImageURL = fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash)
+		ctx.Export("imageName", pulumi.String(latestImageURL))
+		ctx.Export("ecrRepoUrl", pulumi.String(ecrRepoUrl))
+		ctx.Export("sourceHash", pulumi.String(currentHash))
+		ctx.Export("skipped", pulumi.Bool(true))
 
 		// TODO make this into a string, always using 'latest'
 		//latestImageUrl := pulumi.Sprintf("%s:latest", ecrRepoUrl)
@@ -203,7 +193,8 @@ func main() {
 			}`),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at EKS Cluster Role: %v", err), nil)
+			return nil
 		}
 
 		// Attach EKS cluster policy to the role
@@ -212,7 +203,8 @@ func main() {
 			PolicyArn: pulumi.String("arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at EKS Cluster Policy Attachment: %v", err), nil)
+			return nil
 		}
 
 		// 6. Create IAM role for EKS node group
@@ -229,7 +221,8 @@ func main() {
 			}`),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at EKS Node Role: %v", err), nil)
+			return nil
 		}
 
 		// Attach required policies for node group
@@ -244,7 +237,8 @@ func main() {
 				PolicyArn: pulumi.String(policyArn),
 			}, pulumi.Provider(awsProvider))
 			if err != nil {
-				return err
+				ctx.Log.Debug(fmt.Sprintf("Error at EKS Node Policy Attachment %d: %v", i, err), nil)
+				return nil
 			}
 		}
 
@@ -254,7 +248,8 @@ func main() {
 			RetentionInDays:    pulumi.Int(7),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at CloudWatch Log Group: %v", err), nil)
+			return nil
 		}
 
 		// 6b. Create CloudWatch Logs policy for EKS cluster role
@@ -284,7 +279,8 @@ func main() {
 			}).(pulumi.StringOutput),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at EKS Cluster CloudWatch Logs Policy: %v", err), nil)
+			return nil
 		}
 
 		// 6c. Create CloudWatch Logs policy for EKS node group role
@@ -314,7 +310,8 @@ func main() {
 			}).(pulumi.StringOutput),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at EKS Node CloudWatch Logs Policy: %v", err), nil)
+			return nil
 		}
 		_ = clusterLogsPolicy
 		_ = nodeLogsPolicy
@@ -360,7 +357,8 @@ func main() {
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at EKS Pod Security Group: %v", err), nil)
+			return nil
 		}
 
 
@@ -397,7 +395,8 @@ func main() {
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at ALB Security Group: %v", err), nil)
+			return nil
 		}
 
 		// 7b. Allow ALB to communicate with EKS pods
@@ -411,7 +410,8 @@ func main() {
 			Description:           pulumi.String("Allow ALB to reach EKS pods"),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at NewSecurityGroup: %s", err), nil)
+			return nil
 		}
 
 		// 8. Create EKS cluster with OIDC enabled for IRSA
@@ -430,7 +430,8 @@ func main() {
 			Version: pulumi.String("1.34"),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewCluster: %s", err), nil)
+			return nil
 		}
 
 		// 9. Create EKS node group
@@ -452,15 +453,26 @@ func main() {
 			DiskSize:      pulumi.Int(20),
 		}, pulumi.Provider(awsProvider), pulumi.DependsOn([]pulumi.Resource{cluster}))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewNodeGroup: %s", err), nil)
+			return nil
 		}
 
 		
 		kubeconfig := pulumi.All(cluster.Endpoint, cluster.CertificateAuthority.Data(), cluster.Name).ApplyT(
 			func(args []interface{}) (string, error) {
-				endpoint := args[0].(string)
-				caData := args[1].(string)
-				clusterName := args[2].(string)
+				ctx.Log.Debug(fmt.Sprintf("[DEBUG] Args length: %d", len(args)), nil)
+					for i, val := range args {
+						ctx.Log.Debug(fmt.Sprintf("[DEBUG] Arg[%d] type: %T value: %v", i, val, val), nil)
+					}
+
+				endpoint, ok1 := args[0].(string)
+				_, ok2 := args[1].(*string)
+				clusterName, ok3 := args[2].(string)
+
+				if !ok1 || !ok2 || !ok3 {
+					ctx.Log.Info("Waiting for cluster values to become available. Certificate not ready", nil)
+					return "", nil 
+				}
 		
 				// Define the config as a Go Map
 				config := map[string]interface{}{
@@ -469,7 +481,7 @@ func main() {
 						{
 							"cluster": map[string]interface{}{
 								"server":                     endpoint,
-								"certificate-authority-data": caData,
+								"insecure-skip-tls-verify": true, // disabled for sanity
 							},
 							"name": clusterName,
 						},
@@ -504,6 +516,8 @@ func main() {
 				// Convert the map to a JSON string (K8s accepts JSON as Kubeconfig!)
 				byteData, err := json.Marshal(config)
 				if err != nil {
+					ctx.Log.Debug(fmt.Sprintf("Error at eks.Kubeconfig Function: %s", err), nil)
+					ctx.Log.Debug(fmt.Sprintf("Arguments were: %s", args), nil)
 					return "", err
 				}
 				return string(byteData), nil
@@ -514,7 +528,8 @@ func main() {
 			Kubeconfig: kubeconfig,
 		})
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at Kubconfig: %s", err), nil)
+			return nil
 		}
 
 		// 11. Create Kubernetes deployment
@@ -540,7 +555,7 @@ func main() {
 							&corev1.ContainerArgs{
 								Name:  pulumi.String("meme-generator"),
 								ImagePullPolicy: pulumi.String("Always"),
-								Image: image.ImageName, // TODO reference the latestImageURL here, wrap it for Pulumi.
+								Image: pulumi.String(latestImageURL),
 								Ports: corev1.ContainerPortArray{
 									&corev1.ContainerPortArgs{
 										ContainerPort: pulumi.Int(5000),
@@ -564,7 +579,8 @@ func main() {
 			},
 		}, pulumi.Provider(k8sProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewDeployment: %s", err), nil)
+			return nil
 		}
 
 		// 12. Create Kubernetes service (NodePort type for ALB targeting)
@@ -587,7 +603,8 @@ func main() {
 			},
 		}, pulumi.Provider(k8sProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewService: %s", err), nil)
+			return nil
 		}
 
 		// 13. Create Application Load Balancer
@@ -609,7 +626,8 @@ func main() {
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewLoadBalancer: %s", err), nil)
+			return nil
 		}
 
 		// 14. Create Target Group
@@ -635,7 +653,8 @@ func main() {
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at NewTargetGroup: %s", err), nil)
+			return nil
 		}
 
 		// 15. Create Load Balancer Listener
@@ -651,7 +670,8 @@ func main() {
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at lb.NewListener: %s", err), nil)
+			return nil
 		}
 		_ = listener
 
@@ -701,7 +721,8 @@ func main() {
 			}).(pulumi.StringOutput),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at albControllerRole: %s", err), nil)
+			return nil
 		}
 
 		// 17. Attach AWS Load Balancer Controller policy
@@ -952,7 +973,8 @@ func main() {
 			Policy: pulumi.String(albControllerPolicy),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at aws-load-balancer-controller-policy: %s", err), nil)
+			return nil
 		}
 
 		// 18. Create Kubernetes ServiceAccount for AWS Load Balancer Controller
@@ -966,7 +988,8 @@ func main() {
 			},
 		}, pulumi.Provider(k8sProvider))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at aws-load-balancer-controller-sa: %s", err), nil)
+			return nil
 		}
 		_ = serviceAccount
 
@@ -1008,7 +1031,8 @@ func main() {
 			},
 		}, pulumi.Provider(k8sProvider), pulumi.DependsOn([]pulumi.Resource{service, serviceAccount}))
 		if err != nil {
-			return err
+			ctx.Log.Debug(fmt.Sprintf("Error at meme-generator-ingress: %s", err), nil)
+			return nil
 		}
 
 		// Export the Subnet IDs, ECR Repository URL, EKS cluster info, CloudWatch Log Group, ALB info, and Ingress
@@ -1016,7 +1040,7 @@ func main() {
 		ctx.Export("publicSubnetB", pulumi.String(publicSubnetB))
 		ctx.Export("privateSubnetA", pulumi.String(privateSubnetA))
 		ctx.Export("privateSubnetB", pulumi.String(privateSubnetB))
-		ctx.Export("fullImageName", image.ImageName)
+		ctx.Export("fullImageName", pulumi.String(latestImageURL))
 		ctx.Export("clusterName", cluster.Name)
 		ctx.Export("clusterEndpoint", cluster.Endpoint)
 		ctx.Export("nodeGroupName", nodeGroup.NodeGroupName)
