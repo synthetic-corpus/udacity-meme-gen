@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"os/exec"
+	"encoding/json"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
@@ -125,7 +126,7 @@ func main() {
 		}
 		ctx.Log.Info(fmt.Sprintf("Current directory hash: %s", currentHash), nil)
 
-		var image *docker.Image
+		var image *docker.Image // TODO stop defining the image here
 		hashExists, err := checkIfHashExists(ctx, ecrRepoUrl, currentHash)
 
 		if err == nil {
@@ -133,7 +134,7 @@ func main() {
 			// Build and Push the Docker image from src-test folder
 			// Store hash as build argument for reference
 			ctx.Log.Info("naming image: " + fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash), nil)
-			image, err = docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{
+			image, err = docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{ // TODO use a Pipe here
 				Build: &docker.DockerBuildArgs{
 					Context: pulumi.String("src-test"), // Path relative to working directory /proj
 					Args: pulumi.StringMap{
@@ -161,13 +162,17 @@ func main() {
 
 			ctx.Log.Info("Image built and pushed successfully", nil)
 			}else{
+				// TODO Do not do anything here but log what is happening. No resources.
 				ctx.Log.Info(fmt.Sprintf("Hash unchanged (%s) - skipping build", currentHash), nil)
-				image, err = docker.GetImage(ctx, "meme-generator-app-existing", 
-        			pulumi.ID(fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash)), nil)
-    				if err != nil {
+				// "Link" to an existing image so the pointer is populated
+				image, err = docker.NewImage(ctx, "meme-generator-app-existing", &docker.ImageArgs{
+					ImageName: pulumi.Sprintf("%s:latest", ecrRepoUrl),
+					SkipPush:  pulumi.Bool(true), // Crucial: don't try to push it
+				}, pulumi.Provider(dockerProvider), pulumi.Import(pulumi.ID(fmt.Sprintf("%s:latest", ecrRepoUrl))))
+    			if err != nil {
 					return err
-					}
-			
+				}
+				ctx.Log.Info(fmt.Sprintf("Directed to existing Image %s as expected :-) ", currentHash), nil)
 				ctx.Export("imageName", pulumi.String(ecrRepoUrl+":latest"))
 				ctx.Export("ecrRepoUrl", pulumi.String(ecrRepoUrl))
 				ctx.Export("sourceHash", pulumi.String(currentHash))
@@ -179,7 +184,8 @@ func main() {
 			return err
 		}
 
-		//latestImageName := pulumi.Sprintf("%s:latest", ecrRepoUrl)
+		// TODO make this into a string, always using 'latest'
+		//latestImageUrl := pulumi.Sprintf("%s:latest", ecrRepoUrl)
 
 		// ===== EKS Cluster Setup =====
 		
@@ -357,7 +363,7 @@ func main() {
 			return err
 		}
 
-		// 7a. Create security group for ALB
+
 		albSecurityGroup, err := ec2.NewSecurityGroup(ctx, "alb-security-group", &ec2.SecurityGroupArgs{
 			Description: pulumi.String("Security group for Application Load Balancer"),
 			VpcId:       pulumi.String(vpcId),
@@ -421,7 +427,7 @@ func main() {
 					eksSecurityGroup.ID(),
 				},
 			},
-			Version: pulumi.String("1.28"), // TODO This cluster will not deploy. Check AWS docs.
+			Version: pulumi.String("1.34"),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
 			return err
@@ -450,42 +456,59 @@ func main() {
 		}
 
 		
-		kubeconfig := pulumi.All(cluster.Endpoint, cluster.CertificateAuthority, cluster.Name).ApplyT(func(args []interface{}) (string, error) {
-			endpoint := args[0].(string)
-			ca := args[1].(eks.ClusterCertificateAuthority)
-			clusterName := args[2].(string)
-			caData := ca.Data
-			
-			// Construct kubeconfig YAML
-			kubeconfigYaml := fmt.Sprintf(`apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: %s
-    server: %s
-  name: %s
-contexts:
-- context:
-    cluster: %s
-    user: %s
-  name: %s
-current-context: %s
-kind: Config
-users:
-- name: %s
-  user:
-    exec:
-      apiVersion: client.authentication.k8s.io/v1beta1
-      command: aws
-      args:
-        - eks
-        - get-token
-        - --cluster-name
-        - %s
-        - --region
-        - %s
-`, caData, endpoint, clusterName, clusterName, clusterName, clusterName, clusterName, clusterName, clusterName, awsRegion)
-			return kubeconfigYaml, nil
-		}).(pulumi.StringOutput)
+		kubeconfig := pulumi.All(cluster.Endpoint, cluster.CertificateAuthority.Data(), cluster.Name).ApplyT(
+			func(args []interface{}) (string, error) {
+				endpoint := args[0].(string)
+				caData := args[1].(string)
+				clusterName := args[2].(string)
+		
+				// Define the config as a Go Map
+				config := map[string]interface{}{
+					"apiVersion": "v1",
+					"clusters": []map[string]interface{}{
+						{
+							"cluster": map[string]interface{}{
+								"server":                     endpoint,
+								"certificate-authority-data": caData,
+							},
+							"name": clusterName,
+						},
+					},
+					"contexts": []map[string]interface{}{
+						{
+							"context": map[string]interface{}{
+								"cluster": clusterName,
+								"user":    clusterName,
+							},
+							"name": clusterName,
+						},
+					},
+					"current-context": clusterName,
+					"kind":            "Config",
+					"users": []map[string]interface{}{
+						{
+							"name": clusterName,
+							"user": map[string]interface{}{
+								"exec": map[string]interface{}{
+									"apiVersion": "client.authentication.k8s.io/v1beta1",
+									"command":    "aws",
+									"args": []string{
+										"eks", "get-token", "--cluster-name", clusterName,
+									},
+								},
+							},
+						},
+					},
+				}
+		
+				// Convert the map to a JSON string (K8s accepts JSON as Kubeconfig!)
+				byteData, err := json.Marshal(config)
+				if err != nil {
+					return "", err
+				}
+				return string(byteData), nil
+			},
+		).(pulumi.StringOutput)
 
 		k8sProvider, err := kubernetes.NewProvider(ctx, "k8s-provider", &kubernetes.ProviderArgs{
 			Kubeconfig: kubeconfig,
@@ -517,7 +540,7 @@ users:
 							&corev1.ContainerArgs{
 								Name:  pulumi.String("meme-generator"),
 								ImagePullPolicy: pulumi.String("Always"),
-								Image: image.ImageName, // Docker image from ECR (built and pushed earlier)
+								Image: image.ImageName, // TODO reference the latestImageURL here, wrap it for Pulumi.
 								Ports: corev1.ContainerPortArray{
 									&corev1.ContainerPortArgs{
 										ContainerPort: pulumi.Int(5000),
