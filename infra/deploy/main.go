@@ -434,15 +434,50 @@ func main() {
 			return nil
 		}
 
-		// 9. Create EKS node group
-		// Node group uses private subnets
+		// 9. Create launch template for node group so we can attach the pod security group to nodes.
+		// Nodes need: (1) cluster security group for control-plane communication, (2) eks-pod-security-group for ALB→pod (port 5000) and egress.
+		// With target type "ip", traffic to pod IPs is evaluated against the node's security groups.
+		nodeGroupSgIds := pulumi.All(cluster.VpcConfig.ClusterSecurityGroupId(), eksSecurityGroup.ID()).ApplyT(func(args []interface{}) (pulumi.StringArray, error) {
+			var sgs pulumi.StringArray
+			if args[0] != nil {
+				if p, ok := args[0].(*string); ok && p != nil && *p != "" {
+					sgs = append(sgs, pulumi.String(*p))
+				}
+			}
+			sgs = append(sgs, pulumi.String(args[1].(string)))
+			return sgs, nil
+		}).(pulumi.StringArrayOutput)
+
+		nodeLaunchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-node-launch-template", &ec2.LaunchTemplateArgs{
+			NamePrefix:   pulumi.String("eks-meme-"),
+			Description:  pulumi.String("Launch template for EKS node group with pod security group"),
+			VpcSecurityGroupIds: nodeGroupSgIds,
+			TagSpecifications: ec2.LaunchTemplateTagSpecificationArray{
+				&ec2.LaunchTemplateTagSpecificationArgs{
+					ResourceType: pulumi.String("instance"),
+					Tags: pulumi.StringMap{
+						"Name": pulumi.String("meme-generator-eks-node"),
+					},
+				},
+			},
+		}, pulumi.Provider(awsProvider), pulumi.DependsOn([]pulumi.Resource{cluster}))
+		if err != nil {
+			ctx.Log.Debug(fmt.Sprintf("Error at ec2.NewLaunchTemplate: %s", err), nil)
+			return err
+		}
+
+		// 10. Create EKS node group using launch template (so nodes get the pod security group)
+		// Pods on these nodes inherit the node's security groups → ingress 5000 from ALB, egress all.
 		nodeGroup, err := eks.NewNodeGroup(ctx, "meme-generator-node-group", &eks.NodeGroupArgs{
-			// TODO cluster version "1.28" seems to fail. Review all this in AWS Docs next
 			ClusterName:   cluster.Name,
 			NodeRoleArn:   eksNodeRole.Arn,
 			SubnetIds: pulumi.StringArray{
 				pulumi.String(privateSubnetA),
 				pulumi.String(privateSubnetB),
+			},
+			LaunchTemplate: &eks.NodeGroupLaunchTemplateArgs{
+				Id:      nodeLaunchTemplate.ID(),
+				Version: pulumi.String("$Default"),
 			},
 			ScalingConfig: &eks.NodeGroupScalingConfigArgs{
 				DesiredSize: pulumi.Int(2),
@@ -451,7 +486,7 @@ func main() {
 			},
 			InstanceTypes: pulumi.StringArray{pulumi.String("t3.medium")},
 			DiskSize:      pulumi.Int(20),
-		}, pulumi.Provider(awsProvider), pulumi.DependsOn([]pulumi.Resource{cluster}))
+		}, pulumi.Provider(awsProvider), pulumi.DependsOn([]pulumi.Resource{cluster, nodeLaunchTemplate}))
 		if err != nil {
 			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewNodeGroup: %s", err), nil)
 			return nil

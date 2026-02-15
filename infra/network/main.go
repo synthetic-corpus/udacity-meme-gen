@@ -123,13 +123,46 @@ func main() {
 			return err
 		}
 
-		// 9. Create Route Table for Private Subnets (NO Internet Gateway route)
-		// Private subnets can only communicate within the VPC via the implicit local route
+		// 9. Create Route Table for Private Subnets
+		// Private subnets use NAT Gateway for outbound internet (no direct IGW route)
 		privateRouteTable, err := ec2.NewRouteTable(ctx, "private-route-table", &ec2.RouteTableArgs{
 			VpcId: pulumi.String(vpcId),
 			Tags: pulumi.StringMap{
 				"Name": pulumi.String("Private-Subnets-RouteTable"),
 			},
+		}, pulumi.Provider(awsProvider))
+		if err != nil {
+			return err
+		}
+
+		// 9a. Create Elastic IP for NAT Gateway
+		natEip, err := ec2.NewEip(ctx, "nat-gateway-eip", &ec2.EipArgs{
+			Domain: pulumi.String("vpc"),
+			Tags: pulumi.StringMap{
+				"Name": pulumi.String("Network-NATGateway-EIP"),
+			},
+		}, pulumi.Provider(awsProvider))
+		if err != nil {
+			return err
+		}
+
+		// 9b. Create NAT Gateway in public subnet (so private subnets can reach internet)
+		natGateway, err := ec2.NewNatGateway(ctx, "nat-gateway", &ec2.NatGatewayArgs{
+			SubnetId:     publicSubnet1.ID(),
+			AllocationId: natEip.ID(),
+			Tags: pulumi.StringMap{
+				"Name": pulumi.String("Network-NATGateway"),
+			},
+		}, pulumi.Provider(awsProvider))
+		if err != nil {
+			return err
+		}
+
+		// 9c. Route private subnets' internet traffic through NAT Gateway
+		_, err = ec2.NewRoute(ctx, "private-nat-route", &ec2.RouteArgs{
+			RouteTableId:         privateRouteTable.ID(),
+			DestinationCidrBlock: pulumi.String("0.0.0.0/0"),
+			NatGatewayId:         natGateway.ID(),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
 			return err
@@ -353,6 +386,8 @@ func main() {
 		// 15. Export outputs
 		ctx.Export("vpcId", pulumi.String(vpcId))
 		ctx.Export("internetGatewayId", igw.ID())
+		ctx.Export("natGatewayId", natGateway.ID())
+		ctx.Export("natGatewayEipAllocationId", natEip.ID())
 		ctx.Export("publicRouteTableId", publicRouteTable.ID())
 		ctx.Export("privateRouteTableId", privateRouteTable.ID())
 		ctx.Export("publicSubnet1Id", publicSubnet1.ID())

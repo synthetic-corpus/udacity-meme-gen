@@ -4,7 +4,7 @@
         "stack": "organization/udacity-meme-gen-network/dev-network",
         "latest": {
             "manifest": {
-                "time": "2026-01-19T00:00:55.360729272Z",
+                "time": "2026-02-14T23:00:30.676728738Z",
                 "magic": "6058a9965e02fba8547a604169fd456ac351958e96a331e80975f4ac72ed630f",
                 "version": "v3.214.1"
             },
@@ -22,12 +22,13 @@
                     "outputs": {
                         "internetGatewayId": "igw-05fa956e4ea8f5ec5",
                         "privateNaclId": "acl-066491181ad561db4",
+                        "privateRouteTableId": "rtb-0d893b742d583fda1",
                         "privateSubnet1Id": "subnet-0bed809611a63d5cd",
                         "privateSubnet2Id": "subnet-08649917e4914f274",
                         "publicNaclId": "acl-07e8c756292f5092a",
+                        "publicRouteTableId": "rtb-0bf6271d76c4f6003",
                         "publicSubnet1Id": "subnet-0ecab8cf6d9d2d643",
                         "publicSubnet2Id": "subnet-0bf26eef3231144d5",
-                        "routeTableId": "rtb-08d0d8940eb3afaee",
                         "vpcId": "vpc-08065ce5d8434d4fb"
                     },
                     "created": "2026-01-18T23:13:19.6245283Z",
@@ -111,10 +112,10 @@
                     ]
                 },
                 {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl",
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/internetGateway:InternetGateway::network-igw",
                     "custom": true,
-                    "id": "acl-07e8c756292f5092a",
-                    "type": "aws:ec2/networkAcl:NetworkAcl",
+                    "id": "igw-05fa956e4ea8f5ec5",
+                    "type": "aws:ec2/internetGateway:InternetGateway",
                     "inputs": {
                         "__defaults": [],
                         "tags": {
@@ -122,7 +123,7 @@
                             "CreatedBy": "Udacity Meme Generator - Pulumi Network",
                             "Environment": "dev-network",
                             "ManagedBy": "Pulumi",
-                            "Name": "Public-Subnets-NACL",
+                            "Name": "Network-InternetGateway",
                             "Project": "udacity-meme-gen-network"
                         },
                         "tagsAll": {
@@ -130,24 +131,22 @@
                             "CreatedBy": "Udacity Meme Generator - Pulumi Network",
                             "Environment": "dev-network",
                             "ManagedBy": "Pulumi",
-                            "Name": "Public-Subnets-NACL",
+                            "Name": "Network-InternetGateway",
                             "Project": "udacity-meme-gen-network"
                         },
                         "vpcId": "vpc-08065ce5d8434d4fb"
                     },
                     "outputs": {
-                        "arn": "arn:aws:ec2:us-west-2:902327631572:network-acl/acl-07e8c756292f5092a",
-                        "egress": [],
-                        "id": "acl-07e8c756292f5092a",
-                        "ingress": [],
+                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":1200000000000,\"delete\":1200000000000,\"update\":1200000000000}}",
+                        "arn": "arn:aws:ec2:us-west-2:902327631572:internet-gateway/igw-05fa956e4ea8f5ec5",
+                        "id": "igw-05fa956e4ea8f5ec5",
                         "ownerId": "902327631572",
-                        "subnetIds": [],
                         "tags": {
                             "Contact": "Joel@joelgonzaga.com",
                             "CreatedBy": "Udacity Meme Generator - Pulumi Network",
                             "Environment": "dev-network",
                             "ManagedBy": "Pulumi",
-                            "Name": "Public-Subnets-NACL",
+                            "Name": "Network-InternetGateway",
                             "Project": "udacity-meme-gen-network"
                         },
                         "tagsAll": {
@@ -155,7 +154,7 @@
                             "CreatedBy": "Udacity Meme Generator - Pulumi Network",
                             "Environment": "dev-network",
                             "ManagedBy": "Pulumi",
-                            "Name": "Public-Subnets-NACL",
+                            "Name": "Network-InternetGateway",
                             "Project": "udacity-meme-gen-network"
                         },
                         "vpcId": "vpc-08065ce5d8434d4fb"
@@ -166,130 +165,12 @@
                         "tags": [],
                         "vpcId": []
                     },
-                    "created": "2026-01-18T23:13:22.675892657Z",
-                    "modified": "2026-01-18T23:13:22.675892657Z",
-                    "sourcePosition": "project:///main.go#174",
+                    "created": "2026-01-18T23:13:22.789969018Z",
+                    "modified": "2026-01-18T23:13:22.789969018Z",
+                    "sourcePosition": "project:///main.go#41",
                     "stackTrace": [
                         {
-                            "sourcePosition": "project:///main.go#174"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-2",
-                    "custom": true,
-                    "id": "subnet-08649917e4914f274",
-                    "type": "aws:ec2/subnet:Subnet",
-                    "inputs": {
-                        "__defaults": [
-                            "assignIpv6AddressOnCreation",
-                            "enableDns64",
-                            "enableResourceNameDnsARecordOnLaunch",
-                            "enableResourceNameDnsAaaaRecordOnLaunch",
-                            "ipv6Native",
-                            "mapPublicIpOnLaunch"
-                        ],
-                        "assignIpv6AddressOnCreation": false,
-                        "availabilityZone": "us-west-2b",
-                        "cidrBlock": "10.8.11.0/24",
-                        "enableDns64": false,
-                        "enableResourceNameDnsARecordOnLaunch": false,
-                        "enableResourceNameDnsAaaaRecordOnLaunch": false,
-                        "ipv6Native": false,
-                        "mapPublicIpOnLaunch": false,
-                        "tags": {
-                            "Contact": "Joel@joelgonzaga.com",
-                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
-                            "Environment": "dev-network",
-                            "ManagedBy": "Pulumi",
-                            "Name": "Private-Subnet-2",
-                            "Project": "udacity-meme-gen-network",
-                            "Type": "Private"
-                        },
-                        "tagsAll": {
-                            "Contact": "Joel@joelgonzaga.com",
-                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
-                            "Environment": "dev-network",
-                            "ManagedBy": "Pulumi",
-                            "Name": "Private-Subnet-2",
-                            "Project": "udacity-meme-gen-network",
-                            "Type": "Private"
-                        },
-                        "vpcId": "vpc-08065ce5d8434d4fb"
-                    },
-                    "outputs": {
-                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":600000000000,\"delete\":1200000000000},\"schema_version\":\"1\"}",
-                        "arn": "arn:aws:ec2:us-west-2:902327631572:subnet/subnet-08649917e4914f274",
-                        "assignIpv6AddressOnCreation": false,
-                        "availabilityZone": "us-west-2b",
-                        "availabilityZoneId": "usw2-az2",
-                        "cidrBlock": "10.8.11.0/24",
-                        "customerOwnedIpv4Pool": "",
-                        "enableDns64": false,
-                        "enableLniAtDeviceIndex": 0,
-                        "enableResourceNameDnsARecordOnLaunch": false,
-                        "enableResourceNameDnsAaaaRecordOnLaunch": false,
-                        "id": "subnet-08649917e4914f274",
-                        "ipv6CidrBlock": "",
-                        "ipv6CidrBlockAssociationId": "",
-                        "ipv6Native": false,
-                        "mapCustomerOwnedIpOnLaunch": false,
-                        "mapPublicIpOnLaunch": false,
-                        "outpostArn": "",
-                        "ownerId": "902327631572",
-                        "privateDnsHostnameTypeOnLaunch": "ip-name",
-                        "tags": {
-                            "Contact": "Joel@joelgonzaga.com",
-                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
-                            "Environment": "dev-network",
-                            "ManagedBy": "Pulumi",
-                            "Name": "Private-Subnet-2",
-                            "Project": "udacity-meme-gen-network",
-                            "Type": "Private"
-                        },
-                        "tagsAll": {
-                            "Contact": "Joel@joelgonzaga.com",
-                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
-                            "Environment": "dev-network",
-                            "ManagedBy": "Pulumi",
-                            "Name": "Private-Subnet-2",
-                            "Project": "udacity-meme-gen-network",
-                            "Type": "Private"
-                        },
-                        "vpcId": "vpc-08065ce5d8434d4fb"
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "availabilityZone": [],
-                        "cidrBlock": [],
-                        "tags": [],
-                        "vpcId": []
-                    },
-                    "created": "2026-01-18T23:13:25.270972309Z",
-                    "modified": "2026-01-18T23:13:25.270972309Z",
-                    "sourcePosition": "project:///main.go#92",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#92"
+                            "sourcePosition": "project:///main.go#41"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
@@ -430,87 +311,6 @@
                     ]
                 },
                 {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/internetGateway:InternetGateway::network-igw",
-                    "custom": true,
-                    "id": "igw-05fa956e4ea8f5ec5",
-                    "type": "aws:ec2/internetGateway:InternetGateway",
-                    "inputs": {
-                        "__defaults": [],
-                        "tags": {
-                            "Contact": "Joel@joelgonzaga.com",
-                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
-                            "Environment": "dev-network",
-                            "ManagedBy": "Pulumi",
-                            "Name": "Network-InternetGateway",
-                            "Project": "udacity-meme-gen-network"
-                        },
-                        "tagsAll": {
-                            "Contact": "Joel@joelgonzaga.com",
-                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
-                            "Environment": "dev-network",
-                            "ManagedBy": "Pulumi",
-                            "Name": "Network-InternetGateway",
-                            "Project": "udacity-meme-gen-network"
-                        },
-                        "vpcId": "vpc-08065ce5d8434d4fb"
-                    },
-                    "outputs": {
-                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":1200000000000,\"delete\":1200000000000,\"update\":1200000000000}}",
-                        "arn": "arn:aws:ec2:us-west-2:902327631572:internet-gateway/igw-05fa956e4ea8f5ec5",
-                        "id": "igw-05fa956e4ea8f5ec5",
-                        "ownerId": "902327631572",
-                        "tags": {
-                            "Contact": "Joel@joelgonzaga.com",
-                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
-                            "Environment": "dev-network",
-                            "ManagedBy": "Pulumi",
-                            "Name": "Network-InternetGateway",
-                            "Project": "udacity-meme-gen-network"
-                        },
-                        "tagsAll": {
-                            "Contact": "Joel@joelgonzaga.com",
-                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
-                            "Environment": "dev-network",
-                            "ManagedBy": "Pulumi",
-                            "Name": "Network-InternetGateway",
-                            "Project": "udacity-meme-gen-network"
-                        },
-                        "vpcId": "vpc-08065ce5d8434d4fb"
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "tags": [],
-                        "vpcId": []
-                    },
-                    "created": "2026-01-18T23:13:22.789969018Z",
-                    "modified": "2026-01-18T23:13:22.789969018Z",
-                    "sourcePosition": "project:///main.go#41",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#41"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
                     "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2",
                     "custom": true,
                     "id": "subnet-0bf26eef3231144d5",
@@ -629,9 +429,9 @@
                     ]
                 },
                 {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1",
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-2",
                     "custom": true,
-                    "id": "subnet-0ecab8cf6d9d2d643",
+                    "id": "subnet-08649917e4914f274",
                     "type": "aws:ec2/subnet:Subnet",
                     "inputs": {
                         "__defaults": [
@@ -639,54 +439,55 @@
                             "enableDns64",
                             "enableResourceNameDnsARecordOnLaunch",
                             "enableResourceNameDnsAaaaRecordOnLaunch",
-                            "ipv6Native"
+                            "ipv6Native",
+                            "mapPublicIpOnLaunch"
                         ],
                         "assignIpv6AddressOnCreation": false,
-                        "availabilityZone": "us-west-2a",
-                        "cidrBlock": "10.8.1.0/24",
+                        "availabilityZone": "us-west-2b",
+                        "cidrBlock": "10.8.11.0/24",
                         "enableDns64": false,
                         "enableResourceNameDnsARecordOnLaunch": false,
                         "enableResourceNameDnsAaaaRecordOnLaunch": false,
                         "ipv6Native": false,
-                        "mapPublicIpOnLaunch": true,
+                        "mapPublicIpOnLaunch": false,
                         "tags": {
                             "Contact": "Joel@joelgonzaga.com",
                             "CreatedBy": "Udacity Meme Generator - Pulumi Network",
                             "Environment": "dev-network",
                             "ManagedBy": "Pulumi",
-                            "Name": "Public-Subnet-1",
+                            "Name": "Private-Subnet-2",
                             "Project": "udacity-meme-gen-network",
-                            "Type": "Public"
+                            "Type": "Private"
                         },
                         "tagsAll": {
                             "Contact": "Joel@joelgonzaga.com",
                             "CreatedBy": "Udacity Meme Generator - Pulumi Network",
                             "Environment": "dev-network",
                             "ManagedBy": "Pulumi",
-                            "Name": "Public-Subnet-1",
+                            "Name": "Private-Subnet-2",
                             "Project": "udacity-meme-gen-network",
-                            "Type": "Public"
+                            "Type": "Private"
                         },
                         "vpcId": "vpc-08065ce5d8434d4fb"
                     },
                     "outputs": {
                         "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":600000000000,\"delete\":1200000000000},\"schema_version\":\"1\"}",
-                        "arn": "arn:aws:ec2:us-west-2:902327631572:subnet/subnet-0ecab8cf6d9d2d643",
+                        "arn": "arn:aws:ec2:us-west-2:902327631572:subnet/subnet-08649917e4914f274",
                         "assignIpv6AddressOnCreation": false,
-                        "availabilityZone": "us-west-2a",
-                        "availabilityZoneId": "usw2-az1",
-                        "cidrBlock": "10.8.1.0/24",
+                        "availabilityZone": "us-west-2b",
+                        "availabilityZoneId": "usw2-az2",
+                        "cidrBlock": "10.8.11.0/24",
                         "customerOwnedIpv4Pool": "",
                         "enableDns64": false,
                         "enableLniAtDeviceIndex": 0,
                         "enableResourceNameDnsARecordOnLaunch": false,
                         "enableResourceNameDnsAaaaRecordOnLaunch": false,
-                        "id": "subnet-0ecab8cf6d9d2d643",
+                        "id": "subnet-08649917e4914f274",
                         "ipv6CidrBlock": "",
                         "ipv6CidrBlockAssociationId": "",
                         "ipv6Native": false,
                         "mapCustomerOwnedIpOnLaunch": false,
-                        "mapPublicIpOnLaunch": true,
+                        "mapPublicIpOnLaunch": false,
                         "outpostArn": "",
                         "ownerId": "902327631572",
                         "privateDnsHostnameTypeOnLaunch": "ip-name",
@@ -695,18 +496,18 @@
                             "CreatedBy": "Udacity Meme Generator - Pulumi Network",
                             "Environment": "dev-network",
                             "ManagedBy": "Pulumi",
-                            "Name": "Public-Subnet-1",
+                            "Name": "Private-Subnet-2",
                             "Project": "udacity-meme-gen-network",
-                            "Type": "Public"
+                            "Type": "Private"
                         },
                         "tagsAll": {
                             "Contact": "Joel@joelgonzaga.com",
                             "CreatedBy": "Udacity Meme Generator - Pulumi Network",
                             "Environment": "dev-network",
                             "ManagedBy": "Pulumi",
-                            "Name": "Public-Subnet-1",
+                            "Name": "Private-Subnet-2",
                             "Project": "udacity-meme-gen-network",
-                            "Type": "Public"
+                            "Type": "Private"
                         },
                         "vpcId": "vpc-08065ce5d8434d4fb"
                     },
@@ -715,16 +516,15 @@
                     "propertyDependencies": {
                         "availabilityZone": [],
                         "cidrBlock": [],
-                        "mapPublicIpOnLaunch": [],
                         "tags": [],
                         "vpcId": []
                     },
-                    "created": "2026-01-18T23:13:37.003161022Z",
-                    "modified": "2026-01-18T23:13:37.003161022Z",
-                    "sourcePosition": "project:///main.go#51",
+                    "created": "2026-01-18T23:13:25.270972309Z",
+                    "modified": "2026-01-18T23:13:25.270972309Z",
+                    "sourcePosition": "project:///main.go#92",
                     "stackTrace": [
                         {
-                            "sourcePosition": "project:///main.go#51"
+                            "sourcePosition": "project:///main.go#92"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
@@ -804,10 +604,10 @@
                     },
                     "created": "2026-01-18T23:13:22.62110906Z",
                     "modified": "2026-01-18T23:13:22.62110906Z",
-                    "sourcePosition": "project:///main.go#248",
+                    "sourcePosition": "project:///main.go#281",
                     "stackTrace": [
                         {
-                            "sourcePosition": "project:///main.go#248"
+                            "sourcePosition": "project:///main.go#281"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
@@ -830,800 +630,67 @@
                     ]
                 },
                 {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::public-nacl-inbound-ephemeral",
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl",
                     "custom": true,
-                    "id": "nacl-157589623",
-                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
+                    "id": "acl-07e8c756292f5092a",
+                    "type": "aws:ec2/networkAcl:NetworkAcl",
                     "inputs": {
                         "__defaults": [],
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": false,
-                        "fromPort": 1024,
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "protocol": "tcp",
-                        "ruleAction": "allow",
-                        "ruleNumber": 120,
-                        "toPort": 65535
+                        "tags": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Public-Subnets-NACL",
+                            "Project": "udacity-meme-gen-network"
+                        },
+                        "tagsAll": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Public-Subnets-NACL",
+                            "Project": "udacity-meme-gen-network"
+                        },
+                        "vpcId": "vpc-08065ce5d8434d4fb"
                     },
                     "outputs": {
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": false,
-                        "fromPort": 1024,
-                        "icmpCode": null,
-                        "icmpType": null,
-                        "id": "nacl-157589623",
-                        "ipv6CidrBlock": "",
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "protocol": "6",
-                        "ruleAction": "allow",
-                        "ruleNumber": 120,
-                        "toPort": 65535
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "cidrBlock": [],
+                        "arn": "arn:aws:ec2:us-west-2:902327631572:network-acl/acl-07e8c756292f5092a",
                         "egress": [],
-                        "fromPort": [],
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                        ],
-                        "protocol": [],
-                        "ruleAction": [],
-                        "ruleNumber": [],
-                        "toPort": []
-                    },
-                    "created": "2026-01-18T23:13:23.422749322Z",
-                    "modified": "2026-01-18T23:13:23.422749322Z",
-                    "sourcePosition": "project:///main.go#216",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#216"
+                        "id": "acl-07e8c756292f5092a",
+                        "ingress": [],
+                        "ownerId": "902327631572",
+                        "subnetIds": [],
+                        "tags": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Public-Subnets-NACL",
+                            "Project": "udacity-meme-gen-network"
                         },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        "tagsAll": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Public-Subnets-NACL",
+                            "Project": "udacity-meme-gen-network"
                         },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::public-nacl-outbound-all",
-                    "custom": true,
-                    "id": "nacl-1028465033",
-                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
-                    "inputs": {
-                        "__defaults": [],
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": true,
-                        "fromPort": 0,
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "protocol": "-1",
-                        "ruleAction": "allow",
-                        "ruleNumber": 100,
-                        "toPort": 0
-                    },
-                    "outputs": {
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": true,
-                        "fromPort": 0,
-                        "icmpCode": null,
-                        "icmpType": null,
-                        "id": "nacl-1028465033",
-                        "ipv6CidrBlock": "",
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "protocol": "-1",
-                        "ruleAction": "allow",
-                        "ruleNumber": 100,
-                        "toPort": 0
+                        "vpcId": "vpc-08065ce5d8434d4fb"
                     },
                     "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                    ],
                     "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
                     "propertyDependencies": {
-                        "cidrBlock": [],
-                        "egress": [],
-                        "fromPort": [],
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                        ],
-                        "protocol": [],
-                        "ruleAction": [],
-                        "ruleNumber": [],
-                        "toPort": []
+                        "tags": [],
+                        "vpcId": []
                     },
-                    "created": "2026-01-18T23:13:23.439940843Z",
-                    "modified": "2026-01-18T23:13:23.439940843Z",
-                    "sourcePosition": "project:///main.go#232",
+                    "created": "2026-01-18T23:13:22.675892657Z",
+                    "modified": "2026-01-18T23:13:22.675892657Z",
+                    "sourcePosition": "project:///main.go#207",
                     "stackTrace": [
                         {
-                            "sourcePosition": "project:///main.go#232"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::public-nacl-inbound-http",
-                    "custom": true,
-                    "id": "nacl-1765283132",
-                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
-                    "inputs": {
-                        "__defaults": [],
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": false,
-                        "fromPort": 80,
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "protocol": "tcp",
-                        "ruleAction": "allow",
-                        "ruleNumber": 100,
-                        "toPort": 80
-                    },
-                    "outputs": {
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": false,
-                        "fromPort": 80,
-                        "icmpCode": null,
-                        "icmpType": null,
-                        "id": "nacl-1765283132",
-                        "ipv6CidrBlock": "",
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "protocol": "6",
-                        "ruleAction": "allow",
-                        "ruleNumber": 100,
-                        "toPort": 80
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "cidrBlock": [],
-                        "egress": [],
-                        "fromPort": [],
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                        ],
-                        "protocol": [],
-                        "ruleAction": [],
-                        "ruleNumber": [],
-                        "toPort": []
-                    },
-                    "created": "2026-01-18T23:13:23.422616399Z",
-                    "modified": "2026-01-18T23:13:23.422616399Z",
-                    "sourcePosition": "project:///main.go#186",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#186"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::public-nacl-inbound-https",
-                    "custom": true,
-                    "id": "nacl-3031354553",
-                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
-                    "inputs": {
-                        "__defaults": [],
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": false,
-                        "fromPort": 443,
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "protocol": "tcp",
-                        "ruleAction": "allow",
-                        "ruleNumber": 110,
-                        "toPort": 443
-                    },
-                    "outputs": {
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": false,
-                        "fromPort": 443,
-                        "icmpCode": null,
-                        "icmpType": null,
-                        "id": "nacl-3031354553",
-                        "ipv6CidrBlock": "",
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "protocol": "6",
-                        "ruleAction": "allow",
-                        "ruleNumber": 110,
-                        "toPort": 443
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "cidrBlock": [],
-                        "egress": [],
-                        "fromPort": [],
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                        ],
-                        "protocol": [],
-                        "ruleAction": [],
-                        "ruleNumber": [],
-                        "toPort": []
-                    },
-                    "created": "2026-01-18T23:13:23.40506709Z",
-                    "modified": "2026-01-18T23:13:23.40506709Z",
-                    "sourcePosition": "project:///main.go#201",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#201"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclAssociation:NetworkAclAssociation::public-subnet-2-nacl-assoc",
-                    "custom": true,
-                    "id": "aclassoc-0918a7fb6148123b2",
-                    "type": "aws:ec2/networkAclAssociation:NetworkAclAssociation",
-                    "inputs": {
-                        "__defaults": [],
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "subnetId": "subnet-0bf26eef3231144d5"
-                    },
-                    "outputs": {
-                        "id": "aclassoc-0918a7fb6148123b2",
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "subnetId": "subnet-0bf26eef3231144d5"
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl",
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                        ],
-                        "subnetId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2"
-                        ]
-                    },
-                    "created": "2026-01-18T23:13:34.066760896Z",
-                    "modified": "2026-01-18T23:13:34.066760896Z",
-                    "sourcePosition": "project:///main.go#329",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#329"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclAssociation:NetworkAclAssociation::public-subnet-1-nacl-assoc",
-                    "custom": true,
-                    "id": "aclassoc-07464e98541121d69",
-                    "type": "aws:ec2/networkAclAssociation:NetworkAclAssociation",
-                    "inputs": {
-                        "__defaults": [],
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "subnetId": "subnet-0ecab8cf6d9d2d643"
-                    },
-                    "outputs": {
-                        "id": "aclassoc-07464e98541121d69",
-                        "networkAclId": "acl-07e8c756292f5092a",
-                        "subnetId": "subnet-0ecab8cf6d9d2d643"
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl",
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
-                        ],
-                        "subnetId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
-                        ]
-                    },
-                    "created": "2026-01-18T23:13:37.459965209Z",
-                    "modified": "2026-01-18T23:13:37.459965209Z",
-                    "sourcePosition": "project:///main.go#321",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#321"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclAssociation:NetworkAclAssociation::private-subnet-1-nacl-assoc",
-                    "custom": true,
-                    "id": "aclassoc-08b11a496206555ac",
-                    "type": "aws:ec2/networkAclAssociation:NetworkAclAssociation",
-                    "inputs": {
-                        "__defaults": [],
-                        "networkAclId": "acl-066491181ad561db4",
-                        "subnetId": "subnet-0bed809611a63d5cd"
-                    },
-                    "outputs": {
-                        "id": "aclassoc-08b11a496206555ac",
-                        "networkAclId": "acl-066491181ad561db4",
-                        "subnetId": "subnet-0bed809611a63d5cd"
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl",
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-1"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                        ],
-                        "subnetId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-1"
-                        ]
-                    },
-                    "created": "2026-01-18T23:13:23.806574571Z",
-                    "modified": "2026-01-18T23:13:23.806574571Z",
-                    "sourcePosition": "project:///main.go#337",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#337"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::private-nacl-inbound-ephemeral",
-                    "custom": true,
-                    "id": "nacl-366079164",
-                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
-                    "inputs": {
-                        "__defaults": [],
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": false,
-                        "fromPort": 1024,
-                        "networkAclId": "acl-066491181ad561db4",
-                        "protocol": "tcp",
-                        "ruleAction": "allow",
-                        "ruleNumber": 120,
-                        "toPort": 65535
-                    },
-                    "outputs": {
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": false,
-                        "fromPort": 1024,
-                        "icmpCode": null,
-                        "icmpType": null,
-                        "id": "nacl-366079164",
-                        "ipv6CidrBlock": "",
-                        "networkAclId": "acl-066491181ad561db4",
-                        "protocol": "6",
-                        "ruleAction": "allow",
-                        "ruleNumber": 120,
-                        "toPort": 65535
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "cidrBlock": [],
-                        "egress": [],
-                        "fromPort": [],
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                        ],
-                        "protocol": [],
-                        "ruleAction": [],
-                        "ruleNumber": [],
-                        "toPort": []
-                    },
-                    "created": "2026-01-18T23:13:23.128424044Z",
-                    "modified": "2026-01-18T23:13:23.128424044Z",
-                    "sourcePosition": "project:///main.go#290",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#290"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclAssociation:NetworkAclAssociation::private-subnet-2-nacl-assoc",
-                    "custom": true,
-                    "id": "aclassoc-0054b1553e97b40c6",
-                    "type": "aws:ec2/networkAclAssociation:NetworkAclAssociation",
-                    "inputs": {
-                        "__defaults": [],
-                        "networkAclId": "acl-066491181ad561db4",
-                        "subnetId": "subnet-08649917e4914f274"
-                    },
-                    "outputs": {
-                        "id": "aclassoc-0054b1553e97b40c6",
-                        "networkAclId": "acl-066491181ad561db4",
-                        "subnetId": "subnet-08649917e4914f274"
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl",
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-2"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                        ],
-                        "subnetId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-2"
-                        ]
-                    },
-                    "created": "2026-01-18T23:13:25.733654846Z",
-                    "modified": "2026-01-18T23:13:25.733654846Z",
-                    "sourcePosition": "project:///main.go#345",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#345"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::private-nacl-outbound-all",
-                    "custom": true,
-                    "id": "nacl-3334384736",
-                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
-                    "inputs": {
-                        "__defaults": [],
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": true,
-                        "fromPort": 0,
-                        "networkAclId": "acl-066491181ad561db4",
-                        "protocol": "-1",
-                        "ruleAction": "allow",
-                        "ruleNumber": 100,
-                        "toPort": 0
-                    },
-                    "outputs": {
-                        "cidrBlock": "0.0.0.0/0",
-                        "egress": true,
-                        "fromPort": 0,
-                        "icmpCode": null,
-                        "icmpType": null,
-                        "id": "nacl-3334384736",
-                        "ipv6CidrBlock": "",
-                        "networkAclId": "acl-066491181ad561db4",
-                        "protocol": "-1",
-                        "ruleAction": "allow",
-                        "ruleNumber": 100,
-                        "toPort": 0
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "cidrBlock": [],
-                        "egress": [],
-                        "fromPort": [],
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                        ],
-                        "protocol": [],
-                        "ruleAction": [],
-                        "ruleNumber": [],
-                        "toPort": []
-                    },
-                    "created": "2026-01-18T23:13:23.139885191Z",
-                    "modified": "2026-01-18T23:13:23.139885191Z",
-                    "sourcePosition": "project:///main.go#306",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#306"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::private-nacl-inbound-5000-from-public2",
-                    "custom": true,
-                    "id": "nacl-2820374642",
-                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
-                    "inputs": {
-                        "__defaults": [],
-                        "cidrBlock": "10.8.2.0/24",
-                        "egress": false,
-                        "fromPort": 5000,
-                        "networkAclId": "acl-066491181ad561db4",
-                        "protocol": "tcp",
-                        "ruleAction": "allow",
-                        "ruleNumber": 110,
-                        "toPort": 5000
-                    },
-                    "outputs": {
-                        "cidrBlock": "10.8.2.0/24",
-                        "egress": false,
-                        "fromPort": 5000,
-                        "icmpCode": null,
-                        "icmpType": null,
-                        "id": "nacl-2820374642",
-                        "ipv6CidrBlock": "",
-                        "networkAclId": "acl-066491181ad561db4",
-                        "protocol": "6",
-                        "ruleAction": "allow",
-                        "ruleNumber": 110,
-                        "toPort": 5000
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "cidrBlock": [],
-                        "egress": [],
-                        "fromPort": [],
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                        ],
-                        "protocol": [],
-                        "ruleAction": [],
-                        "ruleNumber": [],
-                        "toPort": []
-                    },
-                    "created": "2026-01-18T23:13:23.057740848Z",
-                    "modified": "2026-01-18T23:13:23.057740848Z",
-                    "sourcePosition": "project:///main.go#275",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#275"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
-                        },
-                        {
-                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
-                        },
-                        {
-                            "sourcePosition": "project:///main.go#13"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
-                        },
-                        {
-                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
-                        }
-                    ]
-                },
-                {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::private-nacl-inbound-5000-from-public1",
-                    "custom": true,
-                    "id": "nacl-1972197879",
-                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
-                    "inputs": {
-                        "__defaults": [],
-                        "cidrBlock": "10.8.1.0/24",
-                        "egress": false,
-                        "fromPort": 5000,
-                        "networkAclId": "acl-066491181ad561db4",
-                        "protocol": "tcp",
-                        "ruleAction": "allow",
-                        "ruleNumber": 100,
-                        "toPort": 5000
-                    },
-                    "outputs": {
-                        "cidrBlock": "10.8.1.0/24",
-                        "egress": false,
-                        "fromPort": 5000,
-                        "icmpCode": null,
-                        "icmpType": null,
-                        "id": "nacl-1972197879",
-                        "ipv6CidrBlock": "",
-                        "networkAclId": "acl-066491181ad561db4",
-                        "protocol": "6",
-                        "ruleAction": "allow",
-                        "ruleNumber": 100,
-                        "toPort": 5000
-                    },
-                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                    ],
-                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
-                    "propertyDependencies": {
-                        "cidrBlock": [],
-                        "egress": [],
-                        "fromPort": [],
-                        "networkAclId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
-                        ],
-                        "protocol": [],
-                        "ruleAction": [],
-                        "ruleNumber": [],
-                        "toPort": []
-                    },
-                    "created": "2026-01-18T23:13:23.058120624Z",
-                    "modified": "2026-01-18T23:13:23.058120624Z",
-                    "sourcePosition": "project:///main.go#260",
-                    "stackTrace": [
-                        {
-                            "sourcePosition": "project:///main.go#260"
+                            "sourcePosition": "project:///main.go#207"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
@@ -1812,42 +879,102 @@
                     ]
                 },
                 {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTableAssociation:RouteTableAssociation::public-subnet-2-association",
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1",
                     "custom": true,
-                    "id": "rtbassoc-0c51cdb89be1a6365",
-                    "type": "aws:ec2/routeTableAssociation:RouteTableAssociation",
+                    "id": "subnet-0ecab8cf6d9d2d643",
+                    "type": "aws:ec2/subnet:Subnet",
                     "inputs": {
-                        "__defaults": [],
-                        "routeTableId": "rtb-0bf6271d76c4f6003",
-                        "subnetId": "subnet-0bf26eef3231144d5"
+                        "__defaults": [
+                            "assignIpv6AddressOnCreation",
+                            "enableDns64",
+                            "enableResourceNameDnsARecordOnLaunch",
+                            "enableResourceNameDnsAaaaRecordOnLaunch",
+                            "ipv6Native"
+                        ],
+                        "assignIpv6AddressOnCreation": false,
+                        "availabilityZone": "us-west-2a",
+                        "cidrBlock": "10.8.1.0/24",
+                        "enableDns64": false,
+                        "enableResourceNameDnsARecordOnLaunch": false,
+                        "enableResourceNameDnsAaaaRecordOnLaunch": false,
+                        "ipv6Native": false,
+                        "mapPublicIpOnLaunch": true,
+                        "tags": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Public-Subnet-1",
+                            "Project": "udacity-meme-gen-network",
+                            "Type": "Public"
+                        },
+                        "tagsAll": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Public-Subnet-1",
+                            "Project": "udacity-meme-gen-network",
+                            "Type": "Public"
+                        },
+                        "vpcId": "vpc-08065ce5d8434d4fb"
                     },
                     "outputs": {
-                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":300000000000,\"delete\":300000000000,\"update\":120000000000}}",
-                        "gatewayId": "",
-                        "id": "rtbassoc-0332f3916359b26ce",
-                        "routeTableId": "rtb-0bf6271d76c4f6003",
-                        "subnetId": "subnet-0bf26eef3231144d5"
+                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":600000000000,\"delete\":1200000000000},\"schema_version\":\"1\"}",
+                        "arn": "arn:aws:ec2:us-west-2:902327631572:subnet/subnet-0ecab8cf6d9d2d643",
+                        "assignIpv6AddressOnCreation": false,
+                        "availabilityZone": "us-west-2a",
+                        "availabilityZoneId": "usw2-az1",
+                        "cidrBlock": "10.8.1.0/24",
+                        "customerOwnedIpv4Pool": "",
+                        "enableDns64": false,
+                        "enableLniAtDeviceIndex": 0,
+                        "enableResourceNameDnsARecordOnLaunch": false,
+                        "enableResourceNameDnsAaaaRecordOnLaunch": false,
+                        "id": "subnet-0ecab8cf6d9d2d643",
+                        "ipv6CidrBlock": "",
+                        "ipv6CidrBlockAssociationId": "",
+                        "ipv6Native": false,
+                        "mapCustomerOwnedIpOnLaunch": false,
+                        "mapPublicIpOnLaunch": true,
+                        "outpostArn": "",
+                        "ownerId": "902327631572",
+                        "privateDnsHostnameTypeOnLaunch": "ip-name",
+                        "tags": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Public-Subnet-1",
+                            "Project": "udacity-meme-gen-network",
+                            "Type": "Public"
+                        },
+                        "tagsAll": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Public-Subnet-1",
+                            "Project": "udacity-meme-gen-network",
+                            "Type": "Public"
+                        },
+                        "vpcId": "vpc-08065ce5d8434d4fb"
                     },
                     "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
-                    "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::public-route-table",
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2"
-                    ],
                     "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
                     "propertyDependencies": {
-                        "routeTableId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::public-route-table"
-                        ],
-                        "subnetId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2"
-                        ]
+                        "availabilityZone": [],
+                        "cidrBlock": [],
+                        "mapPublicIpOnLaunch": [],
+                        "tags": [],
+                        "vpcId": []
                     },
-                    "created": "2026-01-18T23:13:34.11318877Z",
-                    "modified": "2026-01-19T00:00:53.710840006Z",
-                    "sourcePosition": "project:///main.go#147",
+                    "created": "2026-01-18T23:13:37.003161022Z",
+                    "modified": "2026-01-18T23:13:37.003161022Z",
+                    "sourcePosition": "project:///main.go#51",
                     "stackTrace": [
                         {
-                            "sourcePosition": "project:///main.go#147"
+                            "sourcePosition": "project:///main.go#51"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
@@ -1870,42 +997,58 @@
                     ]
                 },
                 {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTableAssociation:RouteTableAssociation::public-subnet-1-association",
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::private-nacl-inbound-5000-from-public1",
                     "custom": true,
-                    "id": "rtbassoc-0ea0b3c630c5d2bed",
-                    "type": "aws:ec2/routeTableAssociation:RouteTableAssociation",
+                    "id": "nacl-1972197879",
+                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
                     "inputs": {
                         "__defaults": [],
-                        "routeTableId": "rtb-0bf6271d76c4f6003",
-                        "subnetId": "subnet-0ecab8cf6d9d2d643"
+                        "cidrBlock": "10.8.1.0/24",
+                        "egress": false,
+                        "fromPort": 5000,
+                        "networkAclId": "acl-066491181ad561db4",
+                        "protocol": "tcp",
+                        "ruleAction": "allow",
+                        "ruleNumber": 100,
+                        "toPort": 5000
                     },
                     "outputs": {
-                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":300000000000,\"delete\":300000000000,\"update\":120000000000}}",
-                        "gatewayId": "",
-                        "id": "rtbassoc-008f7bbef0e3ac339",
-                        "routeTableId": "rtb-0bf6271d76c4f6003",
-                        "subnetId": "subnet-0ecab8cf6d9d2d643"
+                        "cidrBlock": "10.8.1.0/24",
+                        "egress": false,
+                        "fromPort": 5000,
+                        "icmpCode": null,
+                        "icmpType": null,
+                        "id": "nacl-1972197879",
+                        "ipv6CidrBlock": "",
+                        "networkAclId": "acl-066491181ad561db4",
+                        "protocol": "6",
+                        "ruleAction": "allow",
+                        "ruleNumber": 100,
+                        "toPort": 5000
                     },
                     "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
                     "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::public-route-table",
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
                     ],
                     "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
                     "propertyDependencies": {
-                        "routeTableId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::public-route-table"
+                        "cidrBlock": [],
+                        "egress": [],
+                        "fromPort": [],
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
                         ],
-                        "subnetId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
-                        ]
+                        "protocol": [],
+                        "ruleAction": [],
+                        "ruleNumber": [],
+                        "toPort": []
                     },
-                    "created": "2026-01-18T23:13:37.522367494Z",
-                    "modified": "2026-01-19T00:00:53.716673394Z",
-                    "sourcePosition": "project:///main.go#139",
+                    "created": "2026-01-18T23:13:23.058120624Z",
+                    "modified": "2026-01-18T23:13:23.058120624Z",
+                    "sourcePosition": "project:///main.go#293",
                     "stackTrace": [
                         {
-                            "sourcePosition": "project:///main.go#139"
+                            "sourcePosition": "project:///main.go#293"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
@@ -1928,42 +1071,318 @@
                     ]
                 },
                 {
-                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTableAssociation:RouteTableAssociation::private-subnet-2-association",
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclAssociation:NetworkAclAssociation::private-subnet-1-nacl-assoc",
                     "custom": true,
-                    "id": "rtbassoc-025a2ab83d0c01403",
-                    "type": "aws:ec2/routeTableAssociation:RouteTableAssociation",
+                    "id": "aclassoc-08b11a496206555ac",
+                    "type": "aws:ec2/networkAclAssociation:NetworkAclAssociation",
                     "inputs": {
                         "__defaults": [],
-                        "routeTableId": "rtb-0d893b742d583fda1",
+                        "networkAclId": "acl-066491181ad561db4",
+                        "subnetId": "subnet-0bed809611a63d5cd"
+                    },
+                    "outputs": {
+                        "id": "aclassoc-08b11a496206555ac",
+                        "networkAclId": "acl-066491181ad561db4",
+                        "subnetId": "subnet-0bed809611a63d5cd"
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-1"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
+                        ],
+                        "subnetId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-1"
+                        ]
+                    },
+                    "created": "2026-01-18T23:13:23.806574571Z",
+                    "modified": "2026-01-18T23:13:23.806574571Z",
+                    "sourcePosition": "project:///main.go#370",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#370"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::private-nacl-inbound-5000-from-public2",
+                    "custom": true,
+                    "id": "nacl-2820374642",
+                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
+                    "inputs": {
+                        "__defaults": [],
+                        "cidrBlock": "10.8.2.0/24",
+                        "egress": false,
+                        "fromPort": 5000,
+                        "networkAclId": "acl-066491181ad561db4",
+                        "protocol": "tcp",
+                        "ruleAction": "allow",
+                        "ruleNumber": 110,
+                        "toPort": 5000
+                    },
+                    "outputs": {
+                        "cidrBlock": "10.8.2.0/24",
+                        "egress": false,
+                        "fromPort": 5000,
+                        "icmpCode": null,
+                        "icmpType": null,
+                        "id": "nacl-2820374642",
+                        "ipv6CidrBlock": "",
+                        "networkAclId": "acl-066491181ad561db4",
+                        "protocol": "6",
+                        "ruleAction": "allow",
+                        "ruleNumber": 110,
+                        "toPort": 5000
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "cidrBlock": [],
+                        "egress": [],
+                        "fromPort": [],
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
+                        ],
+                        "protocol": [],
+                        "ruleAction": [],
+                        "ruleNumber": [],
+                        "toPort": []
+                    },
+                    "created": "2026-01-18T23:13:23.057740848Z",
+                    "modified": "2026-01-18T23:13:23.057740848Z",
+                    "sourcePosition": "project:///main.go#308",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#308"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::private-nacl-outbound-all",
+                    "custom": true,
+                    "id": "nacl-3334384736",
+                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
+                    "inputs": {
+                        "__defaults": [],
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": true,
+                        "fromPort": 0,
+                        "networkAclId": "acl-066491181ad561db4",
+                        "protocol": "-1",
+                        "ruleAction": "allow",
+                        "ruleNumber": 100,
+                        "toPort": 0
+                    },
+                    "outputs": {
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": true,
+                        "fromPort": 0,
+                        "icmpCode": null,
+                        "icmpType": null,
+                        "id": "nacl-3334384736",
+                        "ipv6CidrBlock": "",
+                        "networkAclId": "acl-066491181ad561db4",
+                        "protocol": "-1",
+                        "ruleAction": "allow",
+                        "ruleNumber": 100,
+                        "toPort": 0
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "cidrBlock": [],
+                        "egress": [],
+                        "fromPort": [],
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
+                        ],
+                        "protocol": [],
+                        "ruleAction": [],
+                        "ruleNumber": [],
+                        "toPort": []
+                    },
+                    "created": "2026-01-18T23:13:23.139885191Z",
+                    "modified": "2026-01-18T23:13:23.139885191Z",
+                    "sourcePosition": "project:///main.go#339",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#339"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::private-nacl-inbound-ephemeral",
+                    "custom": true,
+                    "id": "nacl-366079164",
+                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
+                    "inputs": {
+                        "__defaults": [],
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": false,
+                        "fromPort": 1024,
+                        "networkAclId": "acl-066491181ad561db4",
+                        "protocol": "tcp",
+                        "ruleAction": "allow",
+                        "ruleNumber": 120,
+                        "toPort": 65535
+                    },
+                    "outputs": {
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": false,
+                        "fromPort": 1024,
+                        "icmpCode": null,
+                        "icmpType": null,
+                        "id": "nacl-366079164",
+                        "ipv6CidrBlock": "",
+                        "networkAclId": "acl-066491181ad561db4",
+                        "protocol": "6",
+                        "ruleAction": "allow",
+                        "ruleNumber": 120,
+                        "toPort": 65535
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "cidrBlock": [],
+                        "egress": [],
+                        "fromPort": [],
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
+                        ],
+                        "protocol": [],
+                        "ruleAction": [],
+                        "ruleNumber": [],
+                        "toPort": []
+                    },
+                    "created": "2026-01-18T23:13:23.128424044Z",
+                    "modified": "2026-01-18T23:13:23.128424044Z",
+                    "sourcePosition": "project:///main.go#323",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#323"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclAssociation:NetworkAclAssociation::private-subnet-2-nacl-assoc",
+                    "custom": true,
+                    "id": "aclassoc-0054b1553e97b40c6",
+                    "type": "aws:ec2/networkAclAssociation:NetworkAclAssociation",
+                    "inputs": {
+                        "__defaults": [],
+                        "networkAclId": "acl-066491181ad561db4",
                         "subnetId": "subnet-08649917e4914f274"
                     },
                     "outputs": {
-                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":300000000000,\"delete\":300000000000,\"update\":120000000000}}",
-                        "gatewayId": "",
-                        "id": "rtbassoc-0f3b739b637dde578",
-                        "routeTableId": "rtb-0d893b742d583fda1",
+                        "id": "aclassoc-0054b1553e97b40c6",
+                        "networkAclId": "acl-066491181ad561db4",
                         "subnetId": "subnet-08649917e4914f274"
                     },
                     "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
                     "dependencies": [
-                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::private-route-table",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl",
                         "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-2"
                     ],
                     "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
                     "propertyDependencies": {
-                        "routeTableId": [
-                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::private-route-table"
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::private-nacl"
                         ],
                         "subnetId": [
                             "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-2"
                         ]
                     },
-                    "created": "2026-01-18T23:13:25.79112363Z",
-                    "modified": "2026-01-19T00:00:53.938159112Z",
-                    "sourcePosition": "project:///main.go#164",
+                    "created": "2026-01-18T23:13:25.733654846Z",
+                    "modified": "2026-01-18T23:13:25.733654846Z",
+                    "sourcePosition": "project:///main.go#378",
                     "stackTrace": [
                         {
-                            "sourcePosition": "project:///main.go#164"
+                            "sourcePosition": "project:///main.go#378"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
@@ -2018,10 +1437,10 @@
                     },
                     "created": "2026-01-18T23:13:23.78656122Z",
                     "modified": "2026-01-19T00:00:53.98592506Z",
-                    "sourcePosition": "project:///main.go#156",
+                    "sourcePosition": "project:///main.go#189",
                     "stackTrace": [
                         {
-                            "sourcePosition": "project:///main.go#156"
+                            "sourcePosition": "project:///main.go#189"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
@@ -2097,6 +1516,862 @@
                     "stackTrace": [
                         {
                             "sourcePosition": "project:///main.go#117"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTableAssociation:RouteTableAssociation::public-subnet-1-association",
+                    "custom": true,
+                    "id": "rtbassoc-0ea0b3c630c5d2bed",
+                    "type": "aws:ec2/routeTableAssociation:RouteTableAssociation",
+                    "inputs": {
+                        "__defaults": [],
+                        "routeTableId": "rtb-0bf6271d76c4f6003",
+                        "subnetId": "subnet-0ecab8cf6d9d2d643"
+                    },
+                    "outputs": {
+                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":300000000000,\"delete\":300000000000,\"update\":120000000000}}",
+                        "gatewayId": "",
+                        "id": "rtbassoc-008f7bbef0e3ac339",
+                        "routeTableId": "rtb-0bf6271d76c4f6003",
+                        "subnetId": "subnet-0ecab8cf6d9d2d643"
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::public-route-table",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "routeTableId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::public-route-table"
+                        ],
+                        "subnetId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
+                        ]
+                    },
+                    "created": "2026-01-18T23:13:37.522367494Z",
+                    "modified": "2026-01-19T00:00:53.716673394Z",
+                    "sourcePosition": "project:///main.go#172",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#172"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTableAssociation:RouteTableAssociation::public-subnet-2-association",
+                    "custom": true,
+                    "id": "rtbassoc-0c51cdb89be1a6365",
+                    "type": "aws:ec2/routeTableAssociation:RouteTableAssociation",
+                    "inputs": {
+                        "__defaults": [],
+                        "routeTableId": "rtb-0bf6271d76c4f6003",
+                        "subnetId": "subnet-0bf26eef3231144d5"
+                    },
+                    "outputs": {
+                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":300000000000,\"delete\":300000000000,\"update\":120000000000}}",
+                        "gatewayId": "",
+                        "id": "rtbassoc-0332f3916359b26ce",
+                        "routeTableId": "rtb-0bf6271d76c4f6003",
+                        "subnetId": "subnet-0bf26eef3231144d5"
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::public-route-table",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "routeTableId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::public-route-table"
+                        ],
+                        "subnetId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2"
+                        ]
+                    },
+                    "created": "2026-01-18T23:13:34.11318877Z",
+                    "modified": "2026-01-19T00:00:53.710840006Z",
+                    "sourcePosition": "project:///main.go#180",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#180"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTableAssociation:RouteTableAssociation::private-subnet-2-association",
+                    "custom": true,
+                    "id": "rtbassoc-025a2ab83d0c01403",
+                    "type": "aws:ec2/routeTableAssociation:RouteTableAssociation",
+                    "inputs": {
+                        "__defaults": [],
+                        "routeTableId": "rtb-0d893b742d583fda1",
+                        "subnetId": "subnet-08649917e4914f274"
+                    },
+                    "outputs": {
+                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":300000000000,\"delete\":300000000000,\"update\":120000000000}}",
+                        "gatewayId": "",
+                        "id": "rtbassoc-0f3b739b637dde578",
+                        "routeTableId": "rtb-0d893b742d583fda1",
+                        "subnetId": "subnet-08649917e4914f274"
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-2",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::private-route-table"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "routeTableId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::private-route-table"
+                        ],
+                        "subnetId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::private-subnet-2"
+                        ]
+                    },
+                    "created": "2026-01-18T23:13:25.79112363Z",
+                    "modified": "2026-01-19T00:00:53.938159112Z",
+                    "sourcePosition": "project:///main.go#197",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#197"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclAssociation:NetworkAclAssociation::public-subnet-2-nacl-assoc",
+                    "custom": true,
+                    "id": "aclassoc-0918a7fb6148123b2",
+                    "type": "aws:ec2/networkAclAssociation:NetworkAclAssociation",
+                    "inputs": {
+                        "__defaults": [],
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "subnetId": "subnet-0bf26eef3231144d5"
+                    },
+                    "outputs": {
+                        "id": "aclassoc-0918a7fb6148123b2",
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "subnetId": "subnet-0bf26eef3231144d5"
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                        ],
+                        "subnetId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-2"
+                        ]
+                    },
+                    "created": "2026-01-18T23:13:34.066760896Z",
+                    "modified": "2026-01-18T23:13:34.066760896Z",
+                    "sourcePosition": "project:///main.go#362",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#362"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::public-nacl-outbound-all",
+                    "custom": true,
+                    "id": "nacl-1028465033",
+                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
+                    "inputs": {
+                        "__defaults": [],
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": true,
+                        "fromPort": 0,
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "protocol": "-1",
+                        "ruleAction": "allow",
+                        "ruleNumber": 100,
+                        "toPort": 0
+                    },
+                    "outputs": {
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": true,
+                        "fromPort": 0,
+                        "icmpCode": null,
+                        "icmpType": null,
+                        "id": "nacl-1028465033",
+                        "ipv6CidrBlock": "",
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "protocol": "-1",
+                        "ruleAction": "allow",
+                        "ruleNumber": 100,
+                        "toPort": 0
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "cidrBlock": [],
+                        "egress": [],
+                        "fromPort": [],
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                        ],
+                        "protocol": [],
+                        "ruleAction": [],
+                        "ruleNumber": [],
+                        "toPort": []
+                    },
+                    "created": "2026-01-18T23:13:23.439940843Z",
+                    "modified": "2026-01-18T23:13:23.439940843Z",
+                    "sourcePosition": "project:///main.go#265",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#265"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclAssociation:NetworkAclAssociation::public-subnet-1-nacl-assoc",
+                    "custom": true,
+                    "id": "aclassoc-07464e98541121d69",
+                    "type": "aws:ec2/networkAclAssociation:NetworkAclAssociation",
+                    "inputs": {
+                        "__defaults": [],
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "subnetId": "subnet-0ecab8cf6d9d2d643"
+                    },
+                    "outputs": {
+                        "id": "aclassoc-07464e98541121d69",
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "subnetId": "subnet-0ecab8cf6d9d2d643"
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                        ],
+                        "subnetId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
+                        ]
+                    },
+                    "created": "2026-01-18T23:13:37.459965209Z",
+                    "modified": "2026-01-18T23:13:37.459965209Z",
+                    "sourcePosition": "project:///main.go#354",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#354"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::public-nacl-inbound-https",
+                    "custom": true,
+                    "id": "nacl-3031354553",
+                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
+                    "inputs": {
+                        "__defaults": [],
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": false,
+                        "fromPort": 443,
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "protocol": "tcp",
+                        "ruleAction": "allow",
+                        "ruleNumber": 110,
+                        "toPort": 443
+                    },
+                    "outputs": {
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": false,
+                        "fromPort": 443,
+                        "icmpCode": null,
+                        "icmpType": null,
+                        "id": "nacl-3031354553",
+                        "ipv6CidrBlock": "",
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "protocol": "6",
+                        "ruleAction": "allow",
+                        "ruleNumber": 110,
+                        "toPort": 443
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "cidrBlock": [],
+                        "egress": [],
+                        "fromPort": [],
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                        ],
+                        "protocol": [],
+                        "ruleAction": [],
+                        "ruleNumber": [],
+                        "toPort": []
+                    },
+                    "created": "2026-01-18T23:13:23.40506709Z",
+                    "modified": "2026-01-18T23:13:23.40506709Z",
+                    "sourcePosition": "project:///main.go#234",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#234"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::public-nacl-inbound-ephemeral",
+                    "custom": true,
+                    "id": "nacl-157589623",
+                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
+                    "inputs": {
+                        "__defaults": [],
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": false,
+                        "fromPort": 1024,
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "protocol": "tcp",
+                        "ruleAction": "allow",
+                        "ruleNumber": 120,
+                        "toPort": 65535
+                    },
+                    "outputs": {
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": false,
+                        "fromPort": 1024,
+                        "icmpCode": null,
+                        "icmpType": null,
+                        "id": "nacl-157589623",
+                        "ipv6CidrBlock": "",
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "protocol": "6",
+                        "ruleAction": "allow",
+                        "ruleNumber": 120,
+                        "toPort": 65535
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "cidrBlock": [],
+                        "egress": [],
+                        "fromPort": [],
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                        ],
+                        "protocol": [],
+                        "ruleAction": [],
+                        "ruleNumber": [],
+                        "toPort": []
+                    },
+                    "created": "2026-01-18T23:13:23.422749322Z",
+                    "modified": "2026-01-18T23:13:23.422749322Z",
+                    "sourcePosition": "project:///main.go#249",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#249"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAclRule:NetworkAclRule::public-nacl-inbound-http",
+                    "custom": true,
+                    "id": "nacl-1765283132",
+                    "type": "aws:ec2/networkAclRule:NetworkAclRule",
+                    "inputs": {
+                        "__defaults": [],
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": false,
+                        "fromPort": 80,
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "protocol": "tcp",
+                        "ruleAction": "allow",
+                        "ruleNumber": 100,
+                        "toPort": 80
+                    },
+                    "outputs": {
+                        "cidrBlock": "0.0.0.0/0",
+                        "egress": false,
+                        "fromPort": 80,
+                        "icmpCode": null,
+                        "icmpType": null,
+                        "id": "nacl-1765283132",
+                        "ipv6CidrBlock": "",
+                        "networkAclId": "acl-07e8c756292f5092a",
+                        "protocol": "6",
+                        "ruleAction": "allow",
+                        "ruleNumber": 100,
+                        "toPort": 80
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "cidrBlock": [],
+                        "egress": [],
+                        "fromPort": [],
+                        "networkAclId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/networkAcl:NetworkAcl::public-nacl"
+                        ],
+                        "protocol": [],
+                        "ruleAction": [],
+                        "ruleNumber": [],
+                        "toPort": []
+                    },
+                    "created": "2026-01-18T23:13:23.422616399Z",
+                    "modified": "2026-01-18T23:13:23.422616399Z",
+                    "sourcePosition": "project:///main.go#219",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#219"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/eip:Eip::nat-gateway-eip",
+                    "custom": true,
+                    "id": "eipalloc-093440bc4cee70355",
+                    "type": "aws:ec2/eip:Eip",
+                    "inputs": {
+                        "__defaults": [],
+                        "domain": "vpc",
+                        "tags": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Network-NATGateway-EIP",
+                            "Project": "udacity-meme-gen-network"
+                        },
+                        "tagsAll": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Network-NATGateway-EIP",
+                            "Project": "udacity-meme-gen-network"
+                        }
+                    },
+                    "outputs": {
+                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"delete\":180000000000,\"read\":900000000000,\"update\":300000000000}}",
+                        "address": null,
+                        "allocationId": "eipalloc-093440bc4cee70355",
+                        "arn": "arn:aws:ec2:us-west-2:902327631572:elastic-ip/eipalloc-093440bc4cee70355",
+                        "associateWithPrivateIp": null,
+                        "associationId": "",
+                        "carrierIp": "",
+                        "customerOwnedIp": "",
+                        "customerOwnedIpv4Pool": "",
+                        "domain": "vpc",
+                        "id": "eipalloc-093440bc4cee70355",
+                        "instance": "",
+                        "ipamPoolId": null,
+                        "networkBorderGroup": "us-west-2",
+                        "networkInterface": "",
+                        "privateDns": null,
+                        "privateIp": "",
+                        "ptrRecord": "",
+                        "publicDns": "ec2-54-218-3-20.us-west-2.compute.amazonaws.com",
+                        "publicIp": "54.218.3.20",
+                        "publicIpv4Pool": "amazon",
+                        "tags": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Network-NATGateway-EIP",
+                            "Project": "udacity-meme-gen-network"
+                        },
+                        "tagsAll": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Network-NATGateway-EIP",
+                            "Project": "udacity-meme-gen-network"
+                        },
+                        "vpc": true
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "domain": [],
+                        "tags": []
+                    },
+                    "created": "2026-02-14T22:58:25.066310484Z",
+                    "modified": "2026-02-14T22:58:25.066310484Z",
+                    "sourcePosition": "project:///main.go#139",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#139"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/natGateway:NatGateway::nat-gateway",
+                    "custom": true,
+                    "id": "nat-0e0b3cdb7c3ebd7d8",
+                    "type": "aws:ec2/natGateway:NatGateway",
+                    "inputs": {
+                        "__defaults": [
+                            "connectivityType"
+                        ],
+                        "allocationId": "eipalloc-093440bc4cee70355",
+                        "connectivityType": "public",
+                        "subnetId": "subnet-0ecab8cf6d9d2d643",
+                        "tags": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Network-NATGateway",
+                            "Project": "udacity-meme-gen-network"
+                        },
+                        "tagsAll": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Network-NATGateway",
+                            "Project": "udacity-meme-gen-network"
+                        }
+                    },
+                    "outputs": {
+                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":600000000000,\"delete\":1800000000000,\"update\":600000000000}}",
+                        "allocationId": "eipalloc-093440bc4cee70355",
+                        "associationId": "eipassoc-0a631c26b9ec61594",
+                        "connectivityType": "public",
+                        "id": "nat-0e0b3cdb7c3ebd7d8",
+                        "networkInterfaceId": "eni-06bde25782459aa89",
+                        "privateIp": "10.8.1.208",
+                        "publicIp": "54.218.3.20",
+                        "secondaryAllocationIds": null,
+                        "secondaryPrivateIpAddressCount": 0,
+                        "secondaryPrivateIpAddresses": [],
+                        "subnetId": "subnet-0ecab8cf6d9d2d643",
+                        "tags": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Network-NATGateway",
+                            "Project": "udacity-meme-gen-network"
+                        },
+                        "tagsAll": {
+                            "Contact": "Joel@joelgonzaga.com",
+                            "CreatedBy": "Udacity Meme Generator - Pulumi Network",
+                            "Environment": "dev-network",
+                            "ManagedBy": "Pulumi",
+                            "Name": "Network-NATGateway",
+                            "Project": "udacity-meme-gen-network"
+                        }
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/eip:Eip::nat-gateway-eip"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "allocationId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/eip:Eip::nat-gateway-eip"
+                        ],
+                        "subnetId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/subnet:Subnet::public-subnet-1"
+                        ],
+                        "tags": []
+                    },
+                    "created": "2026-02-14T23:00:29.805785471Z",
+                    "modified": "2026-02-14T23:00:29.805785471Z",
+                    "sourcePosition": "project:///main.go#150",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#150"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#100"
+                        },
+                        {
+                            "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#52"
+                        },
+                        {
+                            "sourcePosition": "project:///main.go#13"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/proc.go#283"
+                        },
+                        {
+                            "sourcePosition": "project:///../usr/local/src/runtime/asm_amd64.s#1700"
+                        }
+                    ]
+                },
+                {
+                    "urn": "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/route:Route::private-nat-route",
+                    "custom": true,
+                    "id": "r-rtb-0d893b742d583fda11080289494",
+                    "type": "aws:ec2/route:Route",
+                    "inputs": {
+                        "__defaults": [],
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "natGatewayId": "nat-0e0b3cdb7c3ebd7d8",
+                        "routeTableId": "rtb-0d893b742d583fda1"
+                    },
+                    "outputs": {
+                        "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":300000000000,\"delete\":300000000000,\"update\":120000000000}}",
+                        "carrierGatewayId": "",
+                        "coreNetworkArn": "",
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "destinationIpv6CidrBlock": "",
+                        "destinationPrefixListId": "",
+                        "egressOnlyGatewayId": "",
+                        "gatewayId": "",
+                        "id": "r-rtb-0d893b742d583fda11080289494",
+                        "instanceId": "",
+                        "instanceOwnerId": "",
+                        "localGatewayId": "",
+                        "natGatewayId": "nat-0e0b3cdb7c3ebd7d8",
+                        "networkInterfaceId": "",
+                        "origin": "CreateRoute",
+                        "routeTableId": "rtb-0d893b742d583fda1",
+                        "state": "active",
+                        "transitGatewayId": "",
+                        "vpcEndpointId": "",
+                        "vpcPeeringConnectionId": ""
+                    },
+                    "parent": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:pulumi:Stack::udacity-meme-gen-network-dev-network",
+                    "dependencies": [
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/natGateway:NatGateway::nat-gateway",
+                        "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::private-route-table"
+                    ],
+                    "provider": "urn:pulumi:dev-network::udacity-meme-gen-network::pulumi:providers:aws::custom-provider::02b61100-aede-4271-add9-9cbb9d89f543",
+                    "propertyDependencies": {
+                        "destinationCidrBlock": [],
+                        "natGatewayId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/natGateway:NatGateway::nat-gateway"
+                        ],
+                        "routeTableId": [
+                            "urn:pulumi:dev-network::udacity-meme-gen-network::aws:ec2/routeTable:RouteTable::private-route-table"
+                        ]
+                    },
+                    "created": "2026-02-14T23:00:30.67648953Z",
+                    "modified": "2026-02-14T23:00:30.67648953Z",
+                    "sourcePosition": "project:///main.go#162",
+                    "stackTrace": [
+                        {
+                            "sourcePosition": "project:///main.go#162"
                         },
                         {
                             "sourcePosition": "project:///../go/pkg/mod/github.com/pulumi/pulumi/sdk/v3@v3.214.0/go/pulumi/run.go#140"
