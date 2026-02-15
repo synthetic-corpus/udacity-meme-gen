@@ -1,5 +1,5 @@
 package main
-
+// TODO Review all of the Ports. Docker will listen on 5000, does anything else talk to on that port? Review All Security groups too.
 import (
 	"fmt"
 	"os"
@@ -316,12 +316,40 @@ func main() {
 		_ = clusterLogsPolicy
 		_ = nodeLogsPolicy
 
+		// 6d. ECR pull policy for EKS node role (pull images from any ECR repository)
+		_, err = iam.NewRolePolicy(ctx, "eks-node-ecr-policy", &iam.RolePolicyArgs{
+			Role: eksNodeRole.Name,
+			Policy: pulumi.String(`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Action": "ecr:GetAuthorizationToken",
+						"Resource": "*"
+					},
+					{
+						"Effect": "Allow",
+						"Action": [
+							"ecr:BatchCheckLayerAvailability",
+							"ecr:GetDownloadUrlForLayer",
+							"ecr:BatchGetImage"
+						],
+						"Resource": "arn:aws:ecr:*:*:repository/*"
+					}
+				]
+			}`),
+		}, pulumi.Provider(awsProvider))
+		if err != nil {
+			ctx.Log.Debug(fmt.Sprintf("Error at EKS Node ECR Policy: %v", err), nil)
+			return nil
+		}
+
 		// 7. Create security group for EKS pods
 		eksSecurityGroup, err := ec2.NewSecurityGroup(ctx, "eks-pod-security-group", &ec2.SecurityGroupArgs{
 			Description: pulumi.String("Security group for EKS pods"),
 			VpcId:       pulumi.String(vpcId),
 			Ingress: ec2.SecurityGroupIngressArray{
-				// Allow HTTP on port 80
+				// Allow HTTP on port 80 #TODO problably the simplest fix is to make sure that Port 80 can talk to the pods. Currently only exposing 5000.
 				&ec2.SecurityGroupIngressArgs{
 					FromPort:   pulumi.Int(80),
 					ToPort:     pulumi.Int(80),
@@ -444,13 +472,38 @@ func main() {
 					sgs = append(sgs, pulumi.String(*p))
 				}
 			}
-			sgs = append(sgs, pulumi.String(args[1].(string)))
+			// eksSecurityGroup.ID() returns pulumi.IDOutput; resolved value can be pulumi.ID (string alias)
+			var podSG string
+			switch v := args[1].(type) {
+			case string:
+				podSG = v
+			case pulumi.ID:
+				podSG = string(v)
+			default:
+				podSG = fmt.Sprintf("%v", v)
+			}
+			sgs = append(sgs, pulumi.String(podSG))
 			return sgs, nil
 		}).(pulumi.StringArrayOutput)
 
 		nodeLaunchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-node-launch-template", &ec2.LaunchTemplateArgs{
-			NamePrefix:   pulumi.String("eks-meme-"),
-			Description:  pulumi.String("Launch template for EKS node group with pod security group"),
+			NamePrefix:  pulumi.String("eks-meme-"),
+			Description: pulumi.String("Launch template for EKS node group with custom provider"),
+			
+			// Move Disk Configuration here
+			BlockDeviceMappings: ec2.LaunchTemplateBlockDeviceMappingArray{
+				&ec2.LaunchTemplateBlockDeviceMappingArgs{
+					DeviceName: pulumi.String("/dev/xvda"), // Default for EKS-optimized AMI
+					Ebs: &ec2.LaunchTemplateBlockDeviceMappingEbsArgs{
+						VolumeSize: pulumi.Int(20),
+						VolumeType: pulumi.String("gp3"),
+					},
+				},
+			},
+		
+			// Move Instance Type here for consistency
+			InstanceType: pulumi.String("t3.medium"),
+		
 			VpcSecurityGroupIds: nodeGroupSgIds,
 			TagSpecifications: ec2.LaunchTemplateTagSpecificationArray{
 				&ec2.LaunchTemplateTagSpecificationArgs{
@@ -460,33 +513,38 @@ func main() {
 					},
 				},
 			},
-		}, pulumi.Provider(awsProvider), pulumi.DependsOn([]pulumi.Resource{cluster}))
+		}, 
+			pulumi.Provider(awsProvider), // <--- Custom provider applied here
+			pulumi.DependsOn([]pulumi.Resource{cluster}),
+		)
 		if err != nil {
 			ctx.Log.Debug(fmt.Sprintf("Error at ec2.NewLaunchTemplate: %s", err), nil)
-			return err
+			return nil
 		}
 
 		// 10. Create EKS node group using launch template (so nodes get the pod security group)
 		// Pods on these nodes inherit the node's security groups → ingress 5000 from ALB, egress all.
 		nodeGroup, err := eks.NewNodeGroup(ctx, "meme-generator-node-group", &eks.NodeGroupArgs{
-			ClusterName:   cluster.Name,
-			NodeRoleArn:   eksNodeRole.Arn,
+			ClusterName: cluster.Name,
+			NodeRoleArn: eksNodeRole.Arn,
 			SubnetIds: pulumi.StringArray{
 				pulumi.String(privateSubnetA),
 				pulumi.String(privateSubnetB),
 			},
 			LaunchTemplate: &eks.NodeGroupLaunchTemplateArgs{
 				Id:      nodeLaunchTemplate.ID(),
-				Version: pulumi.String("$Default"),
+				Version: pulumi.String("$Latest"), // $Latest ensures Pulumi updates trigger node rolls
 			},
 			ScalingConfig: &eks.NodeGroupScalingConfigArgs{
 				DesiredSize: pulumi.Int(2),
 				MinSize:     pulumi.Int(1),
 				MaxSize:     pulumi.Int(3),
 			},
-			InstanceTypes: pulumi.StringArray{pulumi.String("t3.medium")},
-			DiskSize:      pulumi.Int(20),
-		}, pulumi.Provider(awsProvider), pulumi.DependsOn([]pulumi.Resource{cluster, nodeLaunchTemplate}))
+			// DiskSize and InstanceTypes are now REMOVED from here
+		}, 
+			pulumi.Provider(awsProvider), // <--- Custom provider also applied here
+			pulumi.DependsOn([]pulumi.Resource{cluster, nodeLaunchTemplate}),
+		)
 		if err != nil {
 			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewNodeGroup: %s", err), nil)
 			return nil
@@ -1037,6 +1095,7 @@ func main() {
 					"kubernetes.io/ingress.class":                pulumi.String("alb"),
 					"alb.ingress.kubernetes.io/scheme":           pulumi.String("internet-facing"),
 					"alb.ingress.kubernetes.io/target-type":     pulumi.String("ip"),
+					"alb.ingress.kubernetes.io/healthcheck-port": pulumi.String("5000"),
 					"alb.ingress.kubernetes.io/listen-ports":    pulumi.String("[{\"HTTP\": 80}]"),
 					"alb.ingress.kubernetes.io/healthcheck-path": pulumi.String("/health"),
 					"alb.ingress.kubernetes.io/healthcheck-protocol": pulumi.String("HTTP"),
