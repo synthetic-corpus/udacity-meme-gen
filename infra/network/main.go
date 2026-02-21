@@ -54,8 +54,13 @@ func main() {
 			AvailabilityZone: pulumi.String("us-west-2a"),
 			MapPublicIpOnLaunch: pulumi.Bool(true),
 			Tags: pulumi.StringMap{
+				// Human friendly tags
 				"Name": pulumi.String("Public-Subnet-1"),
 				"Type": pulumi.String("Public"),
+				// required by ELB, k8s, karpenter etc
+				"kubernetes.io/role/elb": pulumi.String("1"),
+				"kubernetes.io/cluster/meme-generator-cluster": pulumi.String("shared"),
+				"karpenter.sh/discovery": pulumi.String("meme-generator-cluster"),
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
@@ -68,8 +73,13 @@ func main() {
 			AvailabilityZone: pulumi.String("us-west-2b"),
 			MapPublicIpOnLaunch: pulumi.Bool(true),
 			Tags: pulumi.StringMap{
+				// Human Friendly tags
 				"Name": pulumi.String("Public-Subnet-2"),
 				"Type": pulumi.String("Public"),
+				// required by ELB, k8s, karpenter etc
+				"kubernetes.io/role/elb": pulumi.String("1"),
+				"kubernetes.io/cluster/meme-generator-cluster": pulumi.String("shared"),
+				"karpenter.sh/discovery": pulumi.String("meme-generator-cluster"),
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
@@ -81,8 +91,13 @@ func main() {
 			CidrBlock:        pulumi.String("10.8.10.0/24"),
 			AvailabilityZone: pulumi.String("us-west-2a"),
 			Tags: pulumi.StringMap{
+				// Generic Human friendly tags
 				"Name": pulumi.String("Private-Subnet-1"),
 				"Type": pulumi.String("Private"),
+				// required by ELB, k8s, karpenter etc
+				"kubernetes.io/role/internal-elb": pulumi.String("1"),
+				"kubernetes.io/cluster/meme-generator-cluster": pulumi.String("shared"),
+				"karpenter.sh/discovery": pulumi.String("meme-generator-cluster"),
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
@@ -94,8 +109,13 @@ func main() {
 			CidrBlock:        pulumi.String("10.8.11.0/24"),
 			AvailabilityZone: pulumi.String("us-west-2b"),
 			Tags: pulumi.StringMap{
+				// Generic and human readable tags
 				"Name": pulumi.String("Private-Subnet-2"),
 				"Type": pulumi.String("Private"),
+				// required by ELB, k8s, karpenter etc
+				"kubernetes.io/role/internal-elb": pulumi.String("1"),
+				"kubernetes.io/cluster/meme-generator-cluster": pulumi.String("shared"),
+				"karpenter.sh/discovery": pulumi.String("meme-generator-cluster"),
 			},
 		}, pulumi.Provider(awsProvider))
 		if err != nil {

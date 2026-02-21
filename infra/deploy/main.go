@@ -654,6 +654,14 @@ func main() {
 										ContainerPort: pulumi.Int(5000),
 										Name:          pulumi.String("http"),
 									},
+									&corev1.ContainerPortArgs{
+										ContainerPort: pulumi.Int(80),
+										Name:          pulumi.String("http-alt"),
+									},
+									&corev1.ContainerPortArgs{
+										ContainerPort: pulumi.Int(443),
+										Name:          pulumi.String("https"),
+									},
 								},
 								Resources: &corev1.ResourceRequirementsArgs{
 									Requests: pulumi.StringMap{
@@ -686,10 +694,22 @@ func main() {
 				Type: pulumi.String("NodePort"),
 				Ports: corev1.ServicePortArray{
 					&corev1.ServicePortArgs{
-						Port:       pulumi.Int(80),
-						TargetPort: pulumi.String("http"),
+						Port:       pulumi.Int(5000),
+						TargetPort: pulumi.Int(5000),
 						Protocol:   pulumi.String("TCP"),
 						Name:       pulumi.String("http"),
+					},
+					&corev1.ServicePortArgs{
+						Port:       pulumi.Int(80),
+						TargetPort: pulumi.Int(5000),
+						Protocol:   pulumi.String("TCP"),
+						Name:       pulumi.String("http-alt"),
+					},
+					&corev1.ServicePortArgs{
+						Port:       pulumi.Int(443),
+						TargetPort: pulumi.Int(5000),
+						Protocol:   pulumi.String("TCP"),
+						Name:       pulumi.String("https"),
 					},
 				},
 				Selector: appLabels,
@@ -723,50 +743,6 @@ func main() {
 			return nil
 		}
 
-		// 14. Create Target Group
-		targetGroup, err := lb.NewTargetGroup(ctx, "meme-generator-tg", &lb.TargetGroupArgs{
-			Name:       pulumi.String("meme-generator-tg"),
-			Port:       pulumi.Int(80),
-			Protocol:   pulumi.String("HTTP"),
-			VpcId:      pulumi.String(vpcId),
-			TargetType: pulumi.String("ip"),
-			HealthCheck: &lb.TargetGroupHealthCheckArgs{
-				Enabled:            pulumi.Bool(true),
-				HealthyThreshold:   pulumi.Int(2),
-				UnhealthyThreshold: pulumi.Int(2),
-				Timeout:            pulumi.Int(5),
-				Interval:           pulumi.Int(30),
-				Path:               pulumi.String("/health"),
-				Protocol:           pulumi.String("HTTP"),
-				Port:               pulumi.String("traffic-port"),
-				Matcher:            pulumi.String("200"),
-			},
-			Tags: pulumi.StringMap{
-				"Name": pulumi.String("meme-generator-tg"),
-			},
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at NewTargetGroup: %s", err), nil)
-			return nil
-		}
-
-		// 15. Create Load Balancer Listener
-		listener, err := lb.NewListener(ctx, "meme-generator-listener", &lb.ListenerArgs{
-			LoadBalancerArn: loadBalancer.Arn,
-			Port:            pulumi.Int(80),
-			Protocol:        pulumi.String("HTTP"),
-			DefaultActions: lb.ListenerDefaultActionArray{
-				&lb.ListenerDefaultActionArgs{
-					Type:           pulumi.String("forward"),
-					TargetGroupArn: targetGroup.Arn,
-				},
-			},
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at lb.NewListener: %s", err), nil)
-			return nil
-		}
-		_ = listener
 
 		// 16. Get current AWS account ID and construct OIDC provider URL
 		currentAccount, err := aws.GetCallerIdentity(ctx, nil, nil)
@@ -1095,10 +1071,13 @@ func main() {
 					"kubernetes.io/ingress.class":                pulumi.String("alb"),
 					"alb.ingress.kubernetes.io/scheme":           pulumi.String("internet-facing"),
 					"alb.ingress.kubernetes.io/target-type":     pulumi.String("ip"),
-					"alb.ingress.kubernetes.io/healthcheck-port": pulumi.String("5000"),
+					"alb.ingress.kubernetes.io/healthcheck-port": pulumi.String("80"),
 					"alb.ingress.kubernetes.io/listen-ports":    pulumi.String("[{\"HTTP\": 80}]"),
 					"alb.ingress.kubernetes.io/healthcheck-path": pulumi.String("/health"),
 					"alb.ingress.kubernetes.io/healthcheck-protocol": pulumi.String("HTTP"),
+					// Security Groups were set up manually and I don't want more headache here.
+					"alb.ingress.kubernetes.io/security-groups": albSecurityGroup.ID(),
+					"alb.ingress.kubernetes.io/manage-backend-security-group-rules": pulumi.String("false"),
 				},
 			},
 			Spec: &networkingv1.IngressSpecArgs{
