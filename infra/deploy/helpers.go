@@ -9,7 +9,8 @@ import (
 	"strings"
 	pulEcr "github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ecr"
 	"fmt"
-    "github.com/pulumi/pulumi/sdk/v3/go/pulumi"      //nolint
+	k8syaml "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/yaml"
+	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
 func hashDir(root string) (string, error) {
@@ -73,4 +74,36 @@ func checkIfHashExists(ctx *pulumi.Context, repoURL string, currentHash string) 
 
     // If no error, the image with this hash is already in ECR
     return true, nil
+}
+
+// deploymentImageTransform sets the container image on Deployment resources loaded from k8s/*.yaml.
+func deploymentImageTransform(imageURL string) k8syaml.Transformation {
+	return func(state map[string]interface{}, _ ...pulumi.ResourceOption) {
+		if state["kind"] != "Deployment" {
+			return
+		}
+
+		spec, ok := state["spec"].(map[string]interface{})
+		if !ok {
+			return
+		}
+		podTemplate, ok := spec["template"].(map[string]interface{})
+		if !ok {
+			return
+		}
+		podSpec, ok := podTemplate["spec"].(map[string]interface{})
+		if !ok {
+			return
+		}
+		containers, ok := podSpec["containers"].([]interface{})
+		if !ok || len(containers) == 0 {
+			return
+		}
+		container, ok := containers[0].(map[string]interface{})
+		if !ok {
+			return
+		}
+
+		container["image"] = imageURL
+	}
 }

@@ -1,24 +1,19 @@
 package main
 // TODO Review all of the Ports. Docker will listen on 5000, does anything else talk to on that port? Review All Security groups too.
 import (
-	"fmt"
-	"os"
-	"strings"
-	"os/exec"
-	"encoding/json"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/cloudwatch"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/eks"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/iam"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/lb"
-	"github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes"
-	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/apps/v1"
-	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/core/v1"
-	networkingv1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/networking/v1"
-	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/meta/v1"
-	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"github.com/pulumi/pulumi-docker/sdk/v4/go/docker"
+    "fmt"
+    "os"
+    "strings"
+    "os/exec"
+    "encoding/json"
+    "github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
+    "github.com/pulumi/pulumi-aws/sdk/v6/go/aws/cloudwatch"
+    "github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
+    "github.com/pulumi/pulumi-aws/sdk/v6/go/aws/eks"
+    "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes"
+    k8syaml "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/yaml"
+    "github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+    "github.com/pulumi/pulumi-docker/sdk/v4/go/docker"
 )
 
 func main() {
@@ -178,171 +173,22 @@ func main() {
 		//latestImageUrl := pulumi.Sprintf("%s:latest", ecrRepoUrl)
 
 		// ===== EKS Cluster Setup =====
-		
-		// 5. Create IAM role for EKS cluster
-		eksClusterRole, err := iam.NewRole(ctx, "eks-cluster-role", &iam.RoleArgs{
-			AssumeRolePolicy: pulumi.String(`{
-				"Version": "2012-10-17",
-				"Statement": [{
-					"Effect": "Allow",
-					"Principal": {
-						"Service": "eks.amazonaws.com"
-					},
-					"Action": "sts:AssumeRole"
-				}]
-			}`),
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at EKS Cluster Role: %v", err), nil)
-			return nil
-		}
 
-		// Attach EKS cluster policy to the role
-		_, err = iam.NewRolePolicyAttachment(ctx, "eks-cluster-policy", &iam.RolePolicyAttachmentArgs{
-			Role:      eksClusterRole.Name,
-			PolicyArn: pulumi.String("arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"),
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at EKS Cluster Policy Attachment: %v", err), nil)
-			return nil
-		}
-
-		// 6. Create IAM role for EKS node group
-		eksNodeRole, err := iam.NewRole(ctx, "eks-node-role", &iam.RoleArgs{
-			AssumeRolePolicy: pulumi.String(`{
-				"Version": "2012-10-17",
-				"Statement": [{
-					"Effect": "Allow",
-					"Principal": {
-						"Service": "ec2.amazonaws.com"
-					},
-					"Action": "sts:AssumeRole"
-				}]
-			}`),
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at EKS Node Role: %v", err), nil)
-			return nil
-		}
-
-		// Attach required policies for node group
-		nodePolicies := []string{
-			"arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-			"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
-			"arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-		}
-		for i, policyArn := range nodePolicies {
-			_, err = iam.NewRolePolicyAttachment(ctx, fmt.Sprintf("eks-node-policy-%d", i), &iam.RolePolicyAttachmentArgs{
-				Role:      eksNodeRole.Name,
-				PolicyArn: pulumi.String(policyArn),
-			}, pulumi.Provider(awsProvider))
-			if err != nil {
-				ctx.Log.Debug(fmt.Sprintf("Error at EKS Node Policy Attachment %d: %v", i, err), nil)
-				return nil
-			}
-		}
-
-		// 6a. Create CloudWatch Log Group
 		logGroup, err := cloudwatch.NewLogGroup(ctx, "meme-generator-logs", &cloudwatch.LogGroupArgs{
-			Name:              pulumi.String("Meme-generator-logs"),
-			RetentionInDays:    pulumi.Int(7),
+			Name:            pulumi.String("Meme-generator-logs"),
+			RetentionInDays: pulumi.Int(7),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
 			ctx.Log.Debug(fmt.Sprintf("Error at CloudWatch Log Group: %v", err), nil)
 			return nil
 		}
 
-		// 6b. Create CloudWatch Logs policy for EKS cluster role
-		clusterLogsPolicy, err := iam.NewRolePolicy(ctx, "eks-cluster-cloudwatch-logs-policy", &iam.RolePolicyArgs{
-			Role: eksClusterRole.Name,
-			Policy: pulumi.All(logGroup.Arn).ApplyT(func(args []interface{}) (string, error) {
-				logGroupArn := args[0].(string)
-				// Allow access to the log group and all log streams under it
-				policy := fmt.Sprintf(`{
-					"Version": "2012-10-17",
-					"Statement": [{
-						"Effect": "Allow",
-						"Action": [
-							"logs:PutLogEvents",
-							"logs:CreateLogGroup",
-							"logs:CreateLogStream",
-							"logs:DescribeLogStreams",
-							"logs:DescribeLogGroups"
-						],
-						"Resource": [
-							"%s",
-							"%s:*"
-						]
-					}]
-				}`, logGroupArn, logGroupArn)
-				return policy, nil
-			}).(pulumi.StringOutput),
-		}, pulumi.Provider(awsProvider))
+		eksIAM, err := createEKSIAM(ctx, awsProvider, logGroup)
 		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at EKS Cluster CloudWatch Logs Policy: %v", err), nil)
 			return nil
 		}
-
-		// 6c. Create CloudWatch Logs policy for EKS node group role
-		nodeLogsPolicy, err := iam.NewRolePolicy(ctx, "eks-node-cloudwatch-logs-policy", &iam.RolePolicyArgs{
-			Role: eksNodeRole.Name,
-			Policy: pulumi.All(logGroup.Arn).ApplyT(func(args []interface{}) (string, error) {
-				logGroupArn := args[0].(string)
-				// Allow access to the log group and all log streams under it
-				policy := fmt.Sprintf(`{
-					"Version": "2012-10-17",
-					"Statement": [{
-						"Effect": "Allow",
-						"Action": [
-							"logs:PutLogEvents",
-							"logs:CreateLogGroup",
-							"logs:CreateLogStream",
-							"logs:DescribeLogStreams",
-							"logs:DescribeLogGroups"
-						],
-						"Resource": [
-							"%s",
-							"%s:*"
-						]
-					}]
-				}`, logGroupArn, logGroupArn)
-				return policy, nil
-			}).(pulumi.StringOutput),
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at EKS Node CloudWatch Logs Policy: %v", err), nil)
-			return nil
-		}
-		_ = clusterLogsPolicy
-		_ = nodeLogsPolicy
-
-		// 6d. ECR pull policy for EKS node role (pull images from any ECR repository)
-		_, err = iam.NewRolePolicy(ctx, "eks-node-ecr-policy", &iam.RolePolicyArgs{
-			Role: eksNodeRole.Name,
-			Policy: pulumi.String(`{
-				"Version": "2012-10-17",
-				"Statement": [
-					{
-						"Effect": "Allow",
-						"Action": "ecr:GetAuthorizationToken",
-						"Resource": "*"
-					},
-					{
-						"Effect": "Allow",
-						"Action": [
-							"ecr:BatchCheckLayerAvailability",
-							"ecr:GetDownloadUrlForLayer",
-							"ecr:BatchGetImage"
-						],
-						"Resource": "arn:aws:ecr:*:*:repository/*"
-					}
-				]
-			}`),
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at EKS Node ECR Policy: %v", err), nil)
-			return nil
-		}
+		eksClusterRole := eksIAM.ClusterRole
+		eksNodeRole := eksIAM.NodeRole
 
 		// 7. Create security group for EKS pods
 		eksSecurityGroup, err := ec2.NewSecurityGroup(ctx, "eks-pod-security-group", &ec2.SecurityGroupArgs{
@@ -531,23 +377,24 @@ func main() {
 				pulumi.String(privateSubnetA),
 				pulumi.String(privateSubnetB),
 			},
+			// ---- Reference the Launch Template here ----
 			LaunchTemplate: &eks.NodeGroupLaunchTemplateArgs{
-				Id:      nodeLaunchTemplate.ID(),
-				Version: pulumi.String("$Latest"), // $Latest ensures Pulumi updates trigger node rolls
+				Id:      nodeLaunchTemplate.ID(),  // Grabs the ID output from your launch template resource
+				Version: pulumi.String("$Latest"), // Or specify a hardcoded version like "1"
 			},
 			ScalingConfig: &eks.NodeGroupScalingConfigArgs{
-				DesiredSize: pulumi.Int(2),
+				DesiredSize: pulumi.Int(1), // Locked to exactly 1 node as planned
 				MinSize:     pulumi.Int(1),
-				MaxSize:     pulumi.Int(3),
+				MaxSize:     pulumi.Int(1),
 			},
-			// DiskSize and InstanceTypes are now REMOVED from here
 		}, 
-			pulumi.Provider(awsProvider), // <--- Custom provider also applied here
-			pulumi.DependsOn([]pulumi.Resource{cluster, nodeLaunchTemplate}),
+			pulumi.Provider(awsProvider),
+			// Ensure the cluster and the launch template are fully provisioned first
+			pulumi.DependsOn([]pulumi.Resource{cluster, nodeLaunchTemplate}), 
 		)
 		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewNodeGroup: %s", err), nil)
-			return nil
+			// Make sure to return the actual error here instead of nil so Pulumi knows it failed!
+			return fmt.Errorf("failed to create EKS node group: %w", err) 
 		}
 
 		
@@ -624,491 +471,28 @@ func main() {
 			ctx.Log.Debug(fmt.Sprintf("Error at Kubconfig: %s", err), nil)
 			return nil
 		}
+		// 11. Deploy k8s/*.yaml; inject the ECR image URL into the Deployment via transformation
+		_, err = k8syaml.NewConfigGroup(ctx, "meme-app-manifests", &k8syaml.ConfigGroupArgs{
+			Files: []string{"k8s/*.yaml"},
+			Transformations: []k8syaml.Transformation{
+				deploymentImageTransform(latestImageURL),
+			},
+		},
+			pulumi.Provider(k8sProvider),
+			pulumi.DependsOn([]pulumi.Resource{nodeGroup}),
+		)
+        if err != nil {
+            return fmt.Errorf("failed to apply kubernetes manifests: %w", err)
+        }
 
-		// 11. Create Kubernetes deployment
-		appLabels := pulumi.StringMap{
-			"app": pulumi.String("meme-generator"),
-		}
-		deployment, err := appsv1.NewDeployment(ctx, "meme-generator-deployment", &appsv1.DeploymentArgs{
-			Metadata: &metav1.ObjectMetaArgs{
-				Name:   pulumi.String("meme-generator"),
-				Labels: appLabels,
-			},
-			Spec: &appsv1.DeploymentSpecArgs{
-				Replicas: pulumi.Int(2),
-				Selector: &metav1.LabelSelectorArgs{
-					MatchLabels: appLabels,
-				},
-				Template: &corev1.PodTemplateSpecArgs{
-					Metadata: &metav1.ObjectMetaArgs{
-						Labels: appLabels,
-					},
-					Spec: &corev1.PodSpecArgs{
-						Containers: corev1.ContainerArray{
-							&corev1.ContainerArgs{
-								Name:  pulumi.String("meme-generator"),
-								ImagePullPolicy: pulumi.String("Always"),
-								Image: pulumi.String(latestImageURL),
-								Ports: corev1.ContainerPortArray{
-									&corev1.ContainerPortArgs{
-										ContainerPort: pulumi.Int(5000),
-										Name:          pulumi.String("http"),
-									},
-									&corev1.ContainerPortArgs{
-										ContainerPort: pulumi.Int(80),
-										Name:          pulumi.String("http-alt"),
-									},
-									&corev1.ContainerPortArgs{
-										ContainerPort: pulumi.Int(443),
-										Name:          pulumi.String("https"),
-									},
-								},
-								Resources: &corev1.ResourceRequirementsArgs{
-									Requests: pulumi.StringMap{
-										"cpu":    pulumi.String("100m"),    // 0.1 CPU cores
-										"memory": pulumi.String("128Mi"),   // 128 MiB memory
-									},
-									Limits: pulumi.StringMap{
-										"cpu":    pulumi.String("500m"),    // 0.5 CPU cores max
-										"memory": pulumi.String("512Mi"),   // 512 MiB memory max
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}, pulumi.Provider(k8sProvider))
+
+
+		albControllerRole, err := createALBControllerIAM(ctx, awsProvider, cluster, awsRegion)
 		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewDeployment: %s", err), nil)
 			return nil
 		}
 
-		// 12. Create Kubernetes service (NodePort type for ALB targeting)
-		service, err := corev1.NewService(ctx, "meme-generator-service", &corev1.ServiceArgs{
-			Metadata: &metav1.ObjectMetaArgs{
-				Name:   pulumi.String("meme-generator-service"),
-				Labels: appLabels,
-			},
-			Spec: &corev1.ServiceSpecArgs{
-				Type: pulumi.String("NodePort"),
-				Ports: corev1.ServicePortArray{
-					&corev1.ServicePortArgs{
-						Port:       pulumi.Int(5000),
-						TargetPort: pulumi.Int(5000),
-						Protocol:   pulumi.String("TCP"),
-						Name:       pulumi.String("http"),
-					},
-					&corev1.ServicePortArgs{
-						Port:       pulumi.Int(80),
-						TargetPort: pulumi.Int(5000),
-						Protocol:   pulumi.String("TCP"),
-						Name:       pulumi.String("http-alt"),
-					},
-					&corev1.ServicePortArgs{
-						Port:       pulumi.Int(443),
-						TargetPort: pulumi.Int(5000),
-						Protocol:   pulumi.String("TCP"),
-						Name:       pulumi.String("https"),
-					},
-				},
-				Selector: appLabels,
-			},
-		}, pulumi.Provider(k8sProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewService: %s", err), nil)
-			return nil
-		}
-
-		// 13. Create Application Load Balancer
-		// ALB uses public subnets for internet-facing access
-		loadBalancer, err := lb.NewLoadBalancer(ctx, "meme-generator-alb", &lb.LoadBalancerArgs{
-			Name:             pulumi.String("meme-generator-alb"),
-			LoadBalancerType: pulumi.String("application"),
-			Subnets: pulumi.StringArray{
-				pulumi.String(publicSubnetA),
-				pulumi.String(publicSubnetB),
-			},
-			SecurityGroups: pulumi.StringArray{
-				albSecurityGroup.ID(),
-			},
-			Internal: pulumi.Bool(false), // false = internet-facing
-
-			Tags: pulumi.StringMap{
-				"Name": pulumi.String("meme-generator-alb"),
-			},
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at eks.NewLoadBalancer: %s", err), nil)
-			return nil
-		}
-
-
-		// 16. Get current AWS account ID and construct OIDC provider URL
-		currentAccount, err := aws.GetCallerIdentity(ctx, nil, nil)
-		if err != nil {
-			return err
-		}
-
-		// Construct OIDC issuer URL from cluster (EKS automatically creates this)
-		// Format: https://oidc.eks.<region>.amazonaws.com/id/<OIDC_ID>
-		oidcIssuerUrl := pulumi.All(cluster.Name, awsRegion).ApplyT(func(args []interface{}) (string, error) {
-			clusterName := args[0].(string)
-			region := args[1].(string)
-			// For now, we'll use a pattern. In production, get the actual OIDC ID from cluster
-			// This is a simplified approach - the OIDC provider is created automatically by EKS
-			return fmt.Sprintf("https://oidc.eks.%s.amazonaws.com/id/%s", region, clusterName), nil
-		}).(pulumi.StringOutput)
-
-		// Extract OIDC provider URL (without https://)
-		oidcProviderUrl := oidcIssuerUrl.ApplyT(func(url string) string {
-			return strings.TrimPrefix(url, "https://")
-		}).(pulumi.StringOutput)
-
-		// 17. Create IAM role for AWS Load Balancer Controller with IRSA
-		albControllerRole, err := iam.NewRole(ctx, "aws-load-balancer-controller-role", &iam.RoleArgs{
-			AssumeRolePolicy: pulumi.All(oidcProviderUrl, currentAccount.AccountId).ApplyT(func(args []interface{}) (string, error) {
-				providerUrl := args[0].(string)
-				accountId := args[1].(string)
-				policy := fmt.Sprintf(`{
-					"Version": "2012-10-17",
-					"Statement": [{
-						"Effect": "Allow",
-						"Principal": {
-							"Federated": "arn:aws:iam::%s:oidc-provider/%s"
-						},
-						"Action": "sts:AssumeRoleWithWebIdentity",
-						"Condition": {
-							"StringEquals": {
-								"%s:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller",
-								"%s:aud": "sts.amazonaws.com"
-							}
-						}
-					}]
-				}`, accountId, providerUrl, providerUrl, providerUrl)
-				return policy, nil
-			}).(pulumi.StringOutput),
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at albControllerRole: %s", err), nil)
-			return nil
-		}
-
-		// 17. Attach AWS Load Balancer Controller policy
-		albControllerPolicy := `{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Action": [
-						"iam:CreateServiceLinkedRole"
-					],
-					"Resource": "*",
-					"Condition": {
-						"StringEquals": {
-							"iam:AWSServiceName": "elasticloadbalancing.amazonaws.com"
-						}
-					}
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"ec2:DescribeAccountAttributes",
-						"ec2:DescribeAddresses",
-						"ec2:DescribeAvailabilityZones",
-						"ec2:DescribeInternetGateways",
-						"ec2:DescribeVpcs",
-						"ec2:DescribeVpcPeeringConnections",
-						"ec2:DescribeSubnets",
-						"ec2:DescribeSecurityGroups",
-						"ec2:DescribeInstances",
-						"ec2:DescribeNetworkInterfaces",
-						"ec2:DescribeTags",
-						"ec2:GetCoipPoolUsage",
-						"ec2:DescribeCoipPools",
-						"elasticloadbalancing:DescribeLoadBalancers",
-						"elasticloadbalancing:DescribeLoadBalancerAttributes",
-						"elasticloadbalancing:DescribeListeners",
-						"elasticloadbalancing:DescribeListenerCertificates",
-						"elasticloadbalancing:DescribeSSLPolicies",
-						"elasticloadbalancing:DescribeRules",
-						"elasticloadbalancing:DescribeTargetGroups",
-						"elasticloadbalancing:DescribeTargetGroupAttributes",
-						"elasticloadbalancing:DescribeTargetHealth",
-						"elasticloadbalancing:DescribeTags"
-					],
-					"Resource": "*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"cognito-idp:DescribeUserPoolClient",
-						"acm:ListCertificates",
-						"acm:DescribeCertificate",
-						"iam:ListServerCertificates",
-						"iam:GetServerCertificate",
-						"waf-regional:GetWebACL",
-						"waf-regional:GetWebACLForResource",
-						"waf-regional:AssociateWebACL",
-						"waf-regional:DisassociateWebACL",
-						"wafv2:GetWebACL",
-						"wafv2:GetWebACLForResource",
-						"wafv2:AssociateWebACL",
-						"wafv2:DisassociateWebACL",
-						"shield:GetSubscriptionState",
-						"shield:DescribeProtection",
-						"shield:CreateProtection",
-						"shield:DeleteProtection"
-					],
-					"Resource": "*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"ec2:AuthorizeSecurityGroupIngress",
-						"ec2:RevokeSecurityGroupIngress"
-					],
-					"Resource": "*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"ec2:CreateSecurityGroup"
-					],
-					"Resource": "*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"ec2:CreateTags"
-					],
-					"Resource": "arn:aws:ec2:*:*:security-group/*",
-					"Condition": {
-						"StringEquals": {
-							"ec2:CreateAction": "CreateSecurityGroup"
-						},
-						"Null": {
-							"aws:RequestTag/elbv2.k8s.aws/cluster": "false"
-						}
-					}
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"ec2:CreateTags",
-						"ec2:DeleteTags"
-					],
-					"Resource": "arn:aws:ec2:*:*:security-group/*",
-					"Condition": {
-						"Null": {
-							"aws:RequestTag/elbv2.k8s.aws/cluster": "true",
-							"aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
-						}
-					}
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"ec2:AuthorizeSecurityGroupIngress",
-						"ec2:RevokeSecurityGroupIngress",
-						"ec2:DeleteSecurityGroup"
-					],
-					"Resource": "*",
-					"Condition": {
-						"Null": {
-							"aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
-						}
-					}
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"elasticloadbalancing:CreateLoadBalancer",
-						"elasticloadbalancing:CreateTargetGroup"
-					],
-					"Resource": "*",
-					"Condition": {
-						"Null": {
-							"aws:RequestTag/elbv2.k8s.aws/cluster": "false"
-						}
-					}
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"elasticloadbalancing:CreateListener",
-						"elasticloadbalancing:DeleteListener",
-						"elasticloadbalancing:CreateRule",
-						"elasticloadbalancing:DeleteRule"
-					],
-					"Resource": "*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"elasticloadbalancing:AddTags",
-						"elasticloadbalancing:RemoveTags"
-					],
-					"Resource": [
-						"arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
-						"arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
-						"arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
-					],
-					"Condition": {
-						"Null": {
-							"aws:RequestTag/elbv2.k8s.aws/cluster": "true",
-							"aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
-						}
-					}
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"elasticloadbalancing:AddTags",
-						"elasticloadbalancing:RemoveTags"
-					],
-					"Resource": [
-						"arn:aws:elasticloadbalancing:*:*:listener/net/*/*/*",
-						"arn:aws:elasticloadbalancing:*:*:listener/app/*/*/*",
-						"arn:aws:elasticloadbalancing:*:*:listener-rule/net/*/*/*",
-						"arn:aws:elasticloadbalancing:*:*:listener-rule/app/*/*/*"
-					]
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"elasticloadbalancing:ModifyLoadBalancerAttributes",
-						"elasticloadbalancing:SetIpAddressType",
-						"elasticloadbalancing:SetSecurityGroups",
-						"elasticloadbalancing:SetSubnets",
-						"elasticloadbalancing:DeleteLoadBalancer",
-						"elasticloadbalancing:ModifyTargetGroup",
-						"elasticloadbalancing:ModifyTargetGroupAttributes",
-						"elasticloadbalancing:DeleteTargetGroup"
-					],
-					"Resource": "*",
-					"Condition": {
-						"Null": {
-							"aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
-						}
-					}
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"elasticloadbalancing:AddTags"
-					],
-					"Resource": [
-						"arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
-						"arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
-						"arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
-					],
-					"Condition": {
-						"StringEquals": {
-							"elasticloadbalancing:CreateAction": [
-								"CreateTargetGroup",
-								"CreateLoadBalancer"
-							]
-						},
-						"Null": {
-							"aws:RequestTag/elbv2.k8s.aws/cluster": "false"
-						}
-					}
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"elasticloadbalancing:RegisterTargets",
-						"elasticloadbalancing:DeregisterTargets"
-					],
-					"Resource": "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"elasticloadbalancing:SetWebAcl",
-						"elasticloadbalancing:ModifyListener",
-						"elasticloadbalancing:AddListenerCertificates",
-						"elasticloadbalancing:RemoveListenerCertificates",
-						"elasticloadbalancing:ModifyRule"
-					],
-					"Resource": "*"
-				}
-			]
-		}`
-
-		_, err = iam.NewRolePolicy(ctx, "aws-load-balancer-controller-policy", &iam.RolePolicyArgs{
-			Role:   albControllerRole.Name,
-			Policy: pulumi.String(albControllerPolicy),
-		}, pulumi.Provider(awsProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at aws-load-balancer-controller-policy: %s", err), nil)
-			return nil
-		}
-
-		// 18. Create Kubernetes ServiceAccount for AWS Load Balancer Controller
-		serviceAccount, err := corev1.NewServiceAccount(ctx, "aws-load-balancer-controller-sa", &corev1.ServiceAccountArgs{
-			Metadata: &metav1.ObjectMetaArgs{
-				Name:      pulumi.String("aws-load-balancer-controller"),
-				Namespace: pulumi.String("kube-system"),
-				Annotations: pulumi.StringMap{
-					"eks.amazonaws.com/role-arn": albControllerRole.Arn,
-				},
-			},
-		}, pulumi.Provider(k8sProvider))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at aws-load-balancer-controller-sa: %s", err), nil)
-			return nil
-		}
-		_ = serviceAccount
-
-		// 19. Create Kubernetes Ingress resource (AWS Load Balancer Controller will manage the ALB)
-		ingress, err := networkingv1.NewIngress(ctx, "meme-generator-ingress", &networkingv1.IngressArgs{
-			Metadata: &metav1.ObjectMetaArgs{
-				Name:      pulumi.String("meme-generator-ingress"),
-				Namespace: pulumi.String("default"),
-				Annotations: pulumi.StringMap{
-					"kubernetes.io/ingress.class":                pulumi.String("alb"),
-					"alb.ingress.kubernetes.io/scheme":           pulumi.String("internet-facing"),
-					"alb.ingress.kubernetes.io/target-type":     pulumi.String("ip"),
-					"alb.ingress.kubernetes.io/healthcheck-port": pulumi.String("80"),
-					"alb.ingress.kubernetes.io/listen-ports":    pulumi.String("[{\"HTTP\": 80}]"),
-					"alb.ingress.kubernetes.io/healthcheck-path": pulumi.String("/health"),
-					"alb.ingress.kubernetes.io/healthcheck-protocol": pulumi.String("HTTP"),
-					// Security Groups were set up manually and I don't want more headache here.
-					"alb.ingress.kubernetes.io/security-groups": albSecurityGroup.ID(),
-					"alb.ingress.kubernetes.io/manage-backend-security-group-rules": pulumi.String("false"),
-				},
-			},
-			Spec: &networkingv1.IngressSpecArgs{
-				Rules: networkingv1.IngressRuleArray{
-					&networkingv1.IngressRuleArgs{
-						Http: &networkingv1.HTTPIngressRuleValueArgs{
-							Paths: networkingv1.HTTPIngressPathArray{
-								&networkingv1.HTTPIngressPathArgs{
-									Path:     pulumi.String("/"),
-									PathType: pulumi.String("Prefix"),
-									Backend: &networkingv1.IngressBackendArgs{
-										Service: &networkingv1.IngressServiceBackendArgs{
-											Name: pulumi.String("meme-generator-service"),
-											Port: &networkingv1.ServiceBackendPortArgs{
-												Number: pulumi.Int(80),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}, pulumi.Provider(k8sProvider), pulumi.DependsOn([]pulumi.Resource{service, serviceAccount}))
-		if err != nil {
-			ctx.Log.Debug(fmt.Sprintf("Error at meme-generator-ingress: %s", err), nil)
-			return nil
-		}
-
-		// Export the Subnet IDs, ECR Repository URL, EKS cluster info, CloudWatch Log Group, ALB info, and Ingress
+		// Export the Subnet IDs, ECR Repository URL, EKS cluster info, CloudWatch Log Group, and ALB controller role
 		ctx.Export("publicSubnetA", pulumi.String(publicSubnetA))
 		ctx.Export("publicSubnetB", pulumi.String(publicSubnetB))
 		ctx.Export("privateSubnetA", pulumi.String(privateSubnetA))
@@ -1117,18 +501,8 @@ func main() {
 		ctx.Export("clusterName", cluster.Name)
 		ctx.Export("clusterEndpoint", cluster.Endpoint)
 		ctx.Export("nodeGroupName", nodeGroup.NodeGroupName)
-		ctx.Export("deploymentName", deployment.Metadata.Name())
-		ctx.Export("serviceName", service.Metadata.Name())
 		ctx.Export("logGroupName", logGroup.Name)
-		ctx.Export("ingressName", ingress.Metadata.Name())
 		ctx.Export("albControllerRoleArn", albControllerRole.Arn)
-		// Note: The ALB will be created by AWS Load Balancer Controller when the Ingress is processed
-		// The manually created ALB above is kept for reference but won't be used with Ingress
-		ctx.Export("loadBalancerArn", loadBalancer.Arn)
-		ctx.Export("loadBalancerDnsName", loadBalancer.DnsName)
-		ctx.Export("loadBalancerUrl", loadBalancer.DnsName.ApplyT(func(dns string) string {
-			return fmt.Sprintf("http://%s", dns)
-		}).(pulumi.StringOutput))
 		return nil
 	})
 }
