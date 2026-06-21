@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meme-generator
+  labels:
+    app: meme-generator
+spec:
+  replicas: 2 # Starts with 2 as your minimum
+  selector:
+    matchLabels:
+      app: meme-generator
+  template:
+    metadata:
+      labels:
+        app: meme-generator
+    spec:
+      containers:
+      - name: meme-generator
+        image: PLACEHOLDER # set by Pulumi deploymentImageTransform from ECR build output
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi" # HPA uses this baseline for the 80% calculation
+          limits:
+            cpu: "500m"
+            memory: "512Mi"

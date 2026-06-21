@@ -9,6 +9,7 @@ obj/
 # Compiled binaries
 pulumi-resource-*
 main
+udacity-meme-gen
 __debug_bin
 
 # Dependency directories
