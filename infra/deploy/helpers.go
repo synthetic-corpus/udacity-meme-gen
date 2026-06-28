@@ -108,81 +108,21 @@ func deploymentImageTransform(imageURL string) k8syaml.Transformation {
 	}
 }
 
-// targetGroupBindingTransform sets the target group ARN on TargetGroupBinding resources.
-func targetGroupBindingTransform(targetGroupARN string) k8syaml.Transformation {
+// loadBalancerSubnetTransform pins the NLB to the public subnets from the network stack.
+func loadBalancerSubnetTransform(publicSubnetA, publicSubnetB string) k8syaml.Transformation {
 	return func(state map[string]interface{}, _ ...pulumi.ResourceOption) {
-		if state["kind"] != "TargetGroupBinding" {
+		if state["kind"] != "Service" {
 			return
 		}
-		spec, ok := state["spec"].(map[string]interface{})
-		if !ok {
-			return
-		}
-		spec["targetGroupARN"] = targetGroupARN
-	}
-}
-
-// albControllerInstallTransform patches the AWS Load Balancer Controller install manifest
-// with the EKS cluster name, AWS region, and IRSA role ARN.
-func albControllerInstallTransform(clusterName, awsRegion, roleArn string) k8syaml.Transformation {
-	return func(state map[string]interface{}, _ ...pulumi.ResourceOption) {
-		kind, _ := state["kind"].(string)
 		meta, ok := state["metadata"].(map[string]interface{})
 		if !ok {
 			return
 		}
-		name, _ := meta["name"].(string)
-		namespace, _ := meta["namespace"].(string)
-
-		if kind == "ServiceAccount" && name == "aws-load-balancer-controller" && namespace == "kube-system" {
-			annotations, ok := meta["annotations"].(map[string]interface{})
-			if !ok {
-				annotations = map[string]interface{}{}
-				meta["annotations"] = annotations
-			}
-			annotations["eks.amazonaws.com/role-arn"] = roleArn
-			return
-		}
-
-		if kind != "Deployment" || name != "aws-load-balancer-controller" || namespace != "kube-system" {
-			return
-		}
-		spec, ok := state["spec"].(map[string]interface{})
+		annotations, ok := meta["annotations"].(map[string]interface{})
 		if !ok {
-			return
+			annotations = map[string]interface{}{}
+			meta["annotations"] = annotations
 		}
-		template, ok := spec["template"].(map[string]interface{})
-		if !ok {
-			return
-		}
-		podSpec, ok := template["spec"].(map[string]interface{})
-		if !ok {
-			return
-		}
-		containers, ok := podSpec["containers"].([]interface{})
-		if !ok || len(containers) == 0 {
-			return
-		}
-		container, ok := containers[0].(map[string]interface{})
-		if !ok {
-			return
-		}
-		args, ok := container["args"].([]interface{})
-		if !ok {
-			args = []interface{}{}
-		}
-		newArgs := make([]interface{}, 0, len(args)+2)
-		for _, a := range args {
-			s, _ := a.(string)
-			if strings.HasPrefix(s, "--cluster-name=") || strings.HasPrefix(s, "--aws-region=") {
-				continue
-			}
-			newArgs = append(newArgs, a)
-		}
-		newArgs = append(newArgs,
-			fmt.Sprintf("--cluster-name=%s", clusterName),
-			fmt.Sprintf("--aws-region=%s", awsRegion),
-		)
-		container["args"] = newArgs
+		annotations["service.beta.kubernetes.io/aws-load-balancer-subnets"] = fmt.Sprintf("%s,%s", publicSubnetA, publicSubnetB)
 	}
 }

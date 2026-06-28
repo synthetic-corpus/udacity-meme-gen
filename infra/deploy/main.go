@@ -48,7 +48,7 @@ func main() {
 			return fmt.Errorf("TARGET_VPC_NAME environment variable is required")
 		}
 
-		// Public subnets for ALB
+		// Public subnets: NLB subnet discovery (kubernetes.io/role/elb); nodes stay in private subnets.
 		publicSubnetA := os.Getenv("PUBLIC_SUBNET_A")
 		publicSubnetB := os.Getenv("PUBLIC_SUBNET_B")
 		if publicSubnetA == "" || publicSubnetB == "" {
@@ -60,6 +60,12 @@ func main() {
 		privateSubnetB := os.Getenv("PRIVATE_SUBNET_B")
 		if privateSubnetA == "" || privateSubnetB == "" {
 			return fmt.Errorf("PRIVATE_SUBNET_A and PRIVATE_SUBNET_B environment variables are required")
+		}
+
+		// Must match kubernetes.io/cluster/* tags on subnets in the network stack.
+		eksClusterName := os.Getenv("EKS_CLUSTER_NAME")
+		if eksClusterName == "" {
+			eksClusterName = "meme-generator-cluster"
 		}
 
 		// ==== Docker Section ====
@@ -190,26 +196,11 @@ func main() {
 		eksClusterRole := eksIAM.ClusterRole
 		eksNodeRole := eksIAM.NodeRole
 
-		// 7. Create security group for EKS pods
+		// Security group for EKS pods / nodes (NLB IP targets reach pods on port 5000).
 		eksSecurityGroup, err := ec2.NewSecurityGroup(ctx, "eks-pod-security-group", &ec2.SecurityGroupArgs{
 			Description: pulumi.String("Security group for EKS pods"),
 			VpcId:       pulumi.String(vpcId),
 			Ingress: ec2.SecurityGroupIngressArray{
-				// Allow HTTP on port 80 #TODO problably the simplest fix is to make sure that Port 80 can talk to the pods. Currently only exposing 5000.
-				&ec2.SecurityGroupIngressArgs{
-					FromPort:   pulumi.Int(80),
-					ToPort:     pulumi.Int(80),
-					Protocol:   pulumi.String("tcp"),
-					CidrBlocks: pulumi.StringArray{pulumi.String("0.0.0.0/0")},
-				},
-				// Allow HTTPS on port 443
-				&ec2.SecurityGroupIngressArgs{
-					FromPort:   pulumi.Int(443),
-					ToPort:     pulumi.Int(443),
-					Protocol:   pulumi.String("tcp"),
-					CidrBlocks: pulumi.StringArray{pulumi.String("0.0.0.0/0")},
-				},
-				// Allow application on port 5000
 				&ec2.SecurityGroupIngressArgs{
 					FromPort:   pulumi.Int(5000),
 					ToPort:     pulumi.Int(5000),
@@ -235,22 +226,15 @@ func main() {
 			return nil
 		}
 
-		albSecurityGroup, err := createALBSecurityGroups(ctx, awsProvider, vpcId, eksSecurityGroup)
-		if err != nil {
-			return nil
-		}
-
-		albResources, err := createApplicationLoadBalancer(ctx, awsProvider, vpcId, publicSubnetA, publicSubnetB, albSecurityGroup)
-		if err != nil {
-			return err
-		}
-
-		// 8. Create EKS cluster with OIDC enabled for IRSA
-		// EKS cluster uses private subnets
+		// EKS cluster spans public + private subnets so the AWS cloud controller can place
+		// internet-facing NLBs in public subnets while nodes remain in private subnets.
 		cluster, err := eks.NewCluster(ctx, "meme-generator-cluster", &eks.ClusterArgs{
+			Name:    pulumi.String(eksClusterName),
 			RoleArn: eksClusterRole.Arn,
 			VpcConfig: &eks.ClusterVpcConfigArgs{
 				SubnetIds: pulumi.StringArray{
+					pulumi.String(publicSubnetA),
+					pulumi.String(publicSubnetB),
 					pulumi.String(privateSubnetA),
 					pulumi.String(privateSubnetB),
 				},
@@ -265,9 +249,7 @@ func main() {
 			return nil
 		}
 
-		// 9. Create launch template for node group so we can attach the pod security group to nodes.
-		// Nodes need: (1) cluster security group for control-plane communication, (2) eks-pod-security-group for ALB→pod (port 5000) and egress.
-		// With target type "ip", traffic to pod IPs is evaluated against the node's security groups.
+		// Nodes need the cluster SG plus eks-pod-security-group for NLB→pod traffic on port 5000.
 		nodeGroupSgIds := pulumi.All(cluster.VpcConfig.ClusterSecurityGroupId(), eksSecurityGroup.ID()).ApplyT(func(args []interface{}) (pulumi.StringArray, error) {
 			var sgs pulumi.StringArray
 			if args[0] != nil {
@@ -325,8 +307,7 @@ func main() {
 			return nil
 		}
 
-		// 10. Create EKS node group using launch template (so nodes get the pod security group)
-		// Pods on these nodes inherit the node's security groups → ingress 5000 from ALB, egress all.
+		// Pods on these nodes inherit the node's security groups → ingress 5000, egress all.
 		nodeGroup, err := eks.NewNodeGroup(ctx, "meme-generator-node-group", &eks.NodeGroupArgs{
 			ClusterName: cluster.Name,
 			NodeRoleArn: eksNodeRole.Arn,
@@ -428,13 +409,8 @@ func main() {
 			ctx.Log.Debug(fmt.Sprintf("Error at Kubconfig: %s", err), nil)
 			return nil
 		}
-		albControllerRole, err := createALBControllerIAM(ctx, awsProvider, cluster, awsRegion)
-		if err != nil {
-			return nil
-		}
-
-		// Deploy app manifests (Deployment, Service, HPA)
-		memeAppManifests, err := k8syaml.NewConfigGroup(ctx, "meme-app-manifests", &k8syaml.ConfigGroupArgs{
+		// Deploy k8s/*.yaml; inject the ECR image URL into the Deployment via transformation.
+		_, err = k8syaml.NewConfigGroup(ctx, "meme-app-manifests", &k8syaml.ConfigGroupArgs{
 			Files: []string{
 				"k8s/deployment.yaml",
 				"k8s/service.yaml",
@@ -442,6 +418,7 @@ func main() {
 			},
 			Transformations: []k8syaml.Transformation{
 				deploymentImageTransform(latestImageURL),
+				loadBalancerSubnetTransform(publicSubnetA, publicSubnetB),
 			},
 		},
 			pulumi.Provider(k8sProvider),
@@ -451,38 +428,7 @@ func main() {
 			return fmt.Errorf("failed to apply kubernetes manifests: %w", err)
 		}
 
-		// AWS Load Balancer Controller registers pod IPs with the Pulumi-managed target group via TargetGroupBinding.
-		// Manifest vendored from release v2.8.2: k8s/aws-load-balancer-controller/v2_8_2_full.yaml
-		lbcInstall := pulumi.All(cluster.Name, albControllerRole.Arn).ApplyT(func(args []interface{}) (interface{}, error) {
-			clusterName := args[0].(string)
-			roleArn := args[1].(string)
-			return k8syaml.NewConfigGroup(ctx, "aws-load-balancer-controller", &k8syaml.ConfigGroupArgs{
-				Files: []string{
-					"k8s/aws-load-balancer-controller/v2_8_2_full.yaml",
-				},
-				Transformations: []k8syaml.Transformation{
-					albControllerInstallTransform(clusterName, awsRegion, roleArn),
-				},
-			},
-				pulumi.Provider(k8sProvider),
-				pulumi.DependsOn([]pulumi.Resource{nodeGroup, albControllerRole}),
-			)
-		})
-
-		pulumi.All(albResources.TargetGroup.Arn, lbcInstall).ApplyT(func(args []interface{}) (interface{}, error) {
-			targetGroupARN := args[0].(string)
-			return k8syaml.NewConfigFile(ctx, "meme-generator-tgb", &k8syaml.ConfigFileArgs{
-				File: "k8s/targetgroupbinding.yaml",
-				Transformations: []k8syaml.Transformation{
-					targetGroupBindingTransform(targetGroupARN),
-				},
-			},
-				pulumi.Provider(k8sProvider),
-				pulumi.DependsOn([]pulumi.Resource{memeAppManifests}),
-			)
-		})
-
-		// Export the Subnet IDs, ECR Repository URL, EKS cluster info, CloudWatch Log Group, and ALB controller role
+		// Export subnet IDs and EKS cluster info
 		ctx.Export("publicSubnetA", pulumi.String(publicSubnetA))
 		ctx.Export("publicSubnetB", pulumi.String(publicSubnetB))
 		ctx.Export("privateSubnetA", pulumi.String(privateSubnetA))
@@ -492,10 +438,7 @@ func main() {
 		ctx.Export("clusterEndpoint", cluster.Endpoint)
 		ctx.Export("nodeGroupName", nodeGroup.NodeGroupName)
 		ctx.Export("logGroupName", logGroup.Name)
-		ctx.Export("albControllerRoleArn", albControllerRole.Arn)
-		ctx.Export("albDnsName", albResources.LoadBalancer.DnsName)
-		ctx.Export("albArn", albResources.LoadBalancer.Arn)
-		ctx.Export("targetGroupArn", albResources.TargetGroup.Arn)
+		ctx.Export("loadBalancerServiceName", pulumi.String("meme-generator-service"))
 		return nil
 	})
 }
