@@ -84,6 +84,11 @@ func main() {
 			return fmt.Errorf("ECR_WEB_REPO environment variable is not set")
 		}
 
+		s3BucketName := os.Getenv("MY_S3_BUCKET")
+		if s3BucketName == "" {
+			return fmt.Errorf("MY_S3_BUCKET environment variable is required")
+		}
+
 		// Extract the server URL from the ECR repository URL (domain only, without the repo path)
 		// ECR URL format: account.dkr.ecr.region.amazonaws.com/repo-name
 		// Server should be just the domain part
@@ -194,7 +199,7 @@ func main() {
 			return nil
 		}
 
-		eksIAM, err := createEKSIAM(ctx, awsProvider, logGroup)
+		eksIAM, err := createEKSIAM(ctx, awsProvider, logGroup, s3BucketName)
 		if err != nil {
 			return nil
 		}
@@ -487,6 +492,7 @@ func main() {
 		ctx.Export("privateEndpointSecurityGroupId", privateServiceEndpoints.SecurityGroup.ID())
 		ctx.Export("eksAuthEndpointId", privateServiceEndpoints.EKSAuthEndpoint.ID())
 		ctx.Export("s3EndpointId", privateServiceEndpoints.S3Endpoint.ID())
+		ctx.Export("podIdentityBucketName", pulumi.String(s3BucketName))
 		return nil
 	})
 }

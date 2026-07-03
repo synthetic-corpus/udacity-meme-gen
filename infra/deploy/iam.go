@@ -16,7 +16,7 @@ type EKSIAMRoles struct {
 	PodIdentityRole *iam.Role
 }
 
-func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *cloudwatch.LogGroup) (*EKSIAMRoles, error) {
+func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *cloudwatch.LogGroup, s3BucketName string) (*EKSIAMRoles, error) {
 	eksClusterRole, err := iam.NewRole(ctx, "eks-cluster-role", &iam.RoleArgs{
 		AssumeRolePolicy: pulumi.String(`{
 			"Version": "2012-10-17",
@@ -115,6 +115,10 @@ func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *clou
 		return nil, err
 	}
 
+	if err := attachPodIdentityS3Policy(ctx, awsProvider, podIdentityRole, s3BucketName); err != nil {
+		return nil, err
+	}
+
 	return &EKSIAMRoles{
 		ClusterRole:     eksClusterRole,
 		NodeRole:        eksNodeRole,
@@ -192,5 +196,32 @@ func attachEKSNodeECRPolicy(ctx *pulumi.Context, awsProvider *aws.Provider, node
 		ctx.Log.Debug(fmt.Sprintf("Error at EKS Node ECR Policy: %v", err), nil)
 		return err
 	}
+	return nil
+}
+
+func attachPodIdentityS3Policy(ctx *pulumi.Context, awsProvider *aws.Provider, podIdentityRole *iam.Role, s3BucketName string) error {
+	s3Policy := pulumi.String(fmt.Sprintf(`{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Action": "s3:*",
+				"Resource": [
+					"arn:aws:s3:::%s",
+					"arn:aws:s3:::%s/*"
+				]
+			}
+		]
+	}`, s3BucketName, s3BucketName))
+
+	_, err := iam.NewRolePolicy(ctx, "meme-generator-pod-identity-s3-policy", &iam.RolePolicyArgs{
+		Role:   podIdentityRole.Name,
+		Policy: s3Policy,
+	}, pulumi.Provider(awsProvider))
+	if err != nil {
+		ctx.Log.Debug(fmt.Sprintf("Error at EKS Pod Identity S3 Policy: %v", err), nil)
+		return err
+	}
+
 	return nil
 }
