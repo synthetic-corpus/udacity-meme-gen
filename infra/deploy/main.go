@@ -1,19 +1,26 @@
 package main
+
 // TODO Review all of the Ports. Docker will listen on 5000, does anything else talk to on that port? Review All Security groups too.
 import (
-    "fmt"
-    "os"
-    "strings"
-    "os/exec"
-    "encoding/json"
-    "github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
-    "github.com/pulumi/pulumi-aws/sdk/v6/go/aws/cloudwatch"
-    "github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
-    "github.com/pulumi/pulumi-aws/sdk/v6/go/aws/eks"
-    "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes"
-    k8syaml "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/yaml"
-    "github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-    "github.com/pulumi/pulumi-docker/sdk/v4/go/docker"
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+
+	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
+	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/cloudwatch"
+	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
+	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/eks"
+	"github.com/pulumi/pulumi-docker/sdk/v4/go/docker"
+	"github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes"
+	k8syaml "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/yaml"
+	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+)
+
+const (
+	memeGeneratorNamespace          = "default"
+	memeGeneratorServiceAccountName = "meme-generator-sa"
 )
 
 func main() {
@@ -24,7 +31,7 @@ func main() {
 			awsRegion = "us-west-2"
 		}
 
-		// Defines a customer provider 
+		// Defines a customer provider
 		// This is fundamentally to make sure tags are consistent.
 		awsProvider, err := aws.NewProvider(ctx, "custom-provider", &aws.ProviderArgs{
 			Region: pulumi.String(os.Getenv("AWS_REGION")),
@@ -33,8 +40,8 @@ func main() {
 					"Project":     pulumi.String(ctx.Project()),
 					"ManagedBy":   pulumi.String("Pulumi"),
 					"Environment": pulumi.String(ctx.Stack()),
-					"Contact": pulumi.String("Joel@joelgonzaga.com"),
-					"CreatedBy": pulumi.String("Udacity Meme Generator - Pulumi Deployment"),
+					"Contact":     pulumi.String("Joel@joelgonzaga.com"),
+					"CreatedBy":   pulumi.String("Udacity Meme Generator - Pulumi Deployment"),
 				},
 			},
 		})
@@ -88,7 +95,7 @@ func main() {
 		// Authenticate Docker with ECR using AWS CLI
 		// This runs: aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <ecr-server>
 		ctx.Log.Info(fmt.Sprintf("Authenticating Docker with ECR: %s", ecrServer), nil)
-		
+
 		// Get ECR password
 		getPasswordCmd := exec.Command("aws", "ecr", "get-login-password", "--region", awsRegion)
 		getPasswordCmd.Env = os.Environ()
@@ -118,8 +125,6 @@ func main() {
 			return err
 		}
 
-		
-
 		// === Determines from here, should we even push? Pushes if yes ===
 		currentHash, err := hashDir("/proj/src-test")
 		if err != nil {
@@ -131,41 +136,41 @@ func main() {
 
 		if err == nil {
 			if hashExists == false {
-			// Build and Push the Docker image from src-test folder
-			// Store hash as build argument for reference
-			ctx.Log.Info("naming image: " + fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash), nil)
-			image, err := docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{ // TODO use a Pipe here
-				Build: &docker.DockerBuildArgs{
-					Context: pulumi.String("src-test"), // Path relative to working directory /proj
-					Args: pulumi.StringMap{
-						"SOURCE_HASH": pulumi.String(currentHash),
+				// Build and Push the Docker image from src-test folder
+				// Store hash as build argument for reference
+				ctx.Log.Info("naming image: "+fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash), nil)
+				image, err := docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{ // TODO use a Pipe here
+					Build: &docker.DockerBuildArgs{
+						Context: pulumi.String("src-test"), // Path relative to working directory /proj
+						Args: pulumi.StringMap{
+							"SOURCE_HASH": pulumi.String(currentHash),
+						},
 					},
-				},
-				ImageName: pulumi.String(fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash)),
-				Registry: &docker.RegistryArgs{
-					Server: pulumi.String(ecrServer),
-				},
-			}, pulumi.Provider(dockerProvider))
-			if err != nil {
-				return err
-			}
+					ImageName: pulumi.String(fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash)),
+					Registry: &docker.RegistryArgs{
+						Server: pulumi.String(ecrServer),
+					},
+				}, pulumi.Provider(dockerProvider))
+				if err != nil {
+					return err
+				}
 
-			_, err = docker.NewTag(ctx, "my-image-latest", &docker.TagArgs{
-				// this tags the image created in the above lines.
-				// does not actually create a new one, or re-build. Pulumi smart.
-				SourceImage: image.ImageName,
-				TargetImage: pulumi.String(fmt.Sprintf("%s:latest", ecrRepoUrl)),
-			})
-			if err != nil {
-				return err
-			}
+				_, err = docker.NewTag(ctx, "my-image-latest", &docker.TagArgs{
+					// this tags the image created in the above lines.
+					// does not actually create a new one, or re-build. Pulumi smart.
+					SourceImage: image.ImageName,
+					TargetImage: pulumi.String(fmt.Sprintf("%s:latest", ecrRepoUrl)),
+				})
+				if err != nil {
+					return err
+				}
 
-			ctx.Log.Info("Image built and pushed successfully", nil)
-			}else{
+				ctx.Log.Info("Image built and pushed successfully", nil)
+			} else {
 				ctx.Log.Info(fmt.Sprintf("Hash unchanged (%s) - skipping build", currentHash), nil)
 			}
 
-		}else{
+		} else {
 			// we had some kind of error in getting the image from URL
 			return err
 		}
@@ -195,6 +200,7 @@ func main() {
 		}
 		eksClusterRole := eksIAM.ClusterRole
 		eksNodeRole := eksIAM.NodeRole
+		memeGeneratorPodIdentityRole := eksIAM.PodIdentityRole
 
 		// Security group for EKS pods / nodes (NLB IP targets reach pods on port 5000).
 		eksSecurityGroup, err := ec2.NewSecurityGroup(ctx, "eks-pod-security-group", &ec2.SecurityGroupArgs{
@@ -274,7 +280,7 @@ func main() {
 		nodeLaunchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-node-launch-template", &ec2.LaunchTemplateArgs{
 			NamePrefix:  pulumi.String("eks-meme-"),
 			Description: pulumi.String("Launch template for EKS node group with custom provider"),
-			
+
 			// Move Disk Configuration here
 			BlockDeviceMappings: ec2.LaunchTemplateBlockDeviceMappingArray{
 				&ec2.LaunchTemplateBlockDeviceMappingArgs{
@@ -285,10 +291,10 @@ func main() {
 					},
 				},
 			},
-		
+
 			// Move Instance Type here for consistency
 			InstanceType: pulumi.String("t3.medium"),
-		
+
 			VpcSecurityGroupIds: nodeGroupSgIds,
 			TagSpecifications: ec2.LaunchTemplateTagSpecificationArray{
 				&ec2.LaunchTemplateTagSpecificationArgs{
@@ -298,7 +304,7 @@ func main() {
 					},
 				},
 			},
-		}, 
+		},
 			pulumi.Provider(awsProvider), // <--- Custom provider applied here
 			pulumi.DependsOn([]pulumi.Resource{cluster}),
 		)
@@ -325,23 +331,48 @@ func main() {
 				MinSize:     pulumi.Int(1),
 				MaxSize:     pulumi.Int(1),
 			},
-		}, 
+		},
 			pulumi.Provider(awsProvider),
 			// Ensure the cluster and the launch template are fully provisioned first
-			pulumi.DependsOn([]pulumi.Resource{cluster, nodeLaunchTemplate}), 
+			pulumi.DependsOn([]pulumi.Resource{cluster, nodeLaunchTemplate}),
 		)
 		if err != nil {
 			// Make sure to return the actual error here instead of nil so Pulumi knows it failed!
-			return fmt.Errorf("failed to create EKS node group: %w", err) 
+			return fmt.Errorf("failed to create EKS node group: %w", err)
 		}
 
-		
+		podIdentityAgentAddon, err := eks.NewAddon(ctx, "eks-pod-identity-agent", &eks.AddonArgs{
+			ClusterName:              cluster.Name,
+			AddonName:                pulumi.String("eks-pod-identity-agent"),
+			ResolveConflictsOnCreate: pulumi.String("OVERWRITE"),
+			ResolveConflictsOnUpdate: pulumi.String("OVERWRITE"),
+		},
+			pulumi.Provider(awsProvider),
+			pulumi.DependsOn([]pulumi.Resource{nodeGroup}),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create EKS Pod Identity agent addon: %w", err)
+		}
+
+		podIdentityAssociation, err := eks.NewPodIdentityAssociation(ctx, "meme-generator-pod-identity-association", &eks.PodIdentityAssociationArgs{
+			ClusterName:    cluster.Name,
+			Namespace:      pulumi.String(memeGeneratorNamespace),
+			ServiceAccount: pulumi.String(memeGeneratorServiceAccountName),
+			RoleArn:        memeGeneratorPodIdentityRole.Arn,
+		},
+			pulumi.Provider(awsProvider),
+			pulumi.DependsOn([]pulumi.Resource{podIdentityAgentAddon}),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create EKS Pod Identity association: %w", err)
+		}
+
 		kubeconfig := pulumi.All(cluster.Endpoint, cluster.CertificateAuthority.Data(), cluster.Name).ApplyT(
 			func(args []interface{}) (string, error) {
 				ctx.Log.Debug(fmt.Sprintf("[DEBUG] Args length: %d", len(args)), nil)
-					for i, val := range args {
-						ctx.Log.Debug(fmt.Sprintf("[DEBUG] Arg[%d] type: %T value: %v", i, val, val), nil)
-					}
+				for i, val := range args {
+					ctx.Log.Debug(fmt.Sprintf("[DEBUG] Arg[%d] type: %T value: %v", i, val, val), nil)
+				}
 
 				endpoint, ok1 := args[0].(string)
 				_, ok2 := args[1].(*string)
@@ -349,16 +380,16 @@ func main() {
 
 				if !ok1 || !ok2 || !ok3 {
 					ctx.Log.Info("Waiting for cluster values to become available. Certificate not ready", nil)
-					return "", nil 
+					return "", nil
 				}
-		
+
 				// Define the config as a Go Map
 				config := map[string]interface{}{
 					"apiVersion": "v1",
 					"clusters": []map[string]interface{}{
 						{
 							"cluster": map[string]interface{}{
-								"server":                     endpoint,
+								"server":                   endpoint,
 								"insecure-skip-tls-verify": true, // disabled for sanity
 							},
 							"name": clusterName,
@@ -390,7 +421,7 @@ func main() {
 						},
 					},
 				}
-		
+
 				// Convert the map to a JSON string (K8s accepts JSON as Kubeconfig!)
 				byteData, err := json.Marshal(config)
 				if err != nil {
@@ -412,6 +443,7 @@ func main() {
 		// Deploy k8s/*.yaml; inject the ECR image URL into the Deployment via transformation.
 		_, err = k8syaml.NewConfigGroup(ctx, "meme-app-manifests", &k8syaml.ConfigGroupArgs{
 			Files: []string{
+				"k8s/serviceaccount.yaml",
 				"k8s/deployment.yaml",
 				"k8s/service.yaml",
 				"k8s/hpa.yaml",
@@ -422,7 +454,7 @@ func main() {
 			},
 		},
 			pulumi.Provider(k8sProvider),
-			pulumi.DependsOn([]pulumi.Resource{nodeGroup}),
+			pulumi.DependsOn([]pulumi.Resource{nodeGroup, podIdentityAgentAddon, podIdentityAssociation}),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to apply kubernetes manifests: %w", err)
@@ -439,6 +471,7 @@ func main() {
 		ctx.Export("nodeGroupName", nodeGroup.NodeGroupName)
 		ctx.Export("logGroupName", logGroup.Name)
 		ctx.Export("loadBalancerServiceName", pulumi.String("meme-generator-service"))
+		ctx.Export("podIdentityRoleArn", memeGeneratorPodIdentityRole.Arn)
 		return nil
 	})
 }

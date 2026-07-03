@@ -9,10 +9,11 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-// EKSIAMRoles holds IAM roles used by the EKS cluster and node group.
+// EKSIAMRoles holds IAM roles used by the EKS cluster, node group, and workloads.
 type EKSIAMRoles struct {
-	ClusterRole *iam.Role
-	NodeRole    *iam.Role
+	ClusterRole     *iam.Role
+	NodeRole        *iam.Role
+	PodIdentityRole *iam.Role
 }
 
 func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *cloudwatch.LogGroup) (*EKSIAMRoles, error) {
@@ -93,9 +94,31 @@ func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *clou
 		return nil, err
 	}
 
+	podIdentityRole, err := iam.NewRole(ctx, "meme-generator-pod-identity-role", &iam.RoleArgs{
+		AssumeRolePolicy: pulumi.String(`{
+			"Version": "2012-10-17",
+			"Statement": [{
+				"Effect": "Allow",
+				"Principal": {
+					"Service": "pods.eks.amazonaws.com"
+				},
+				"Action": [
+					"sts:AssumeRole",
+					"sts:TagSession"
+				]
+			}]
+		}`),
+		Description: pulumi.String("IAM role assumed by the meme-generator Kubernetes service account via EKS Pod Identity"),
+	}, pulumi.Provider(awsProvider))
+	if err != nil {
+		ctx.Log.Debug(fmt.Sprintf("Error at EKS Pod Identity Role: %v", err), nil)
+		return nil, err
+	}
+
 	return &EKSIAMRoles{
-		ClusterRole: eksClusterRole,
-		NodeRole:    eksNodeRole,
+		ClusterRole:     eksClusterRole,
+		NodeRole:        eksNodeRole,
+		PodIdentityRole: podIdentityRole,
 	}, nil
 }
 
