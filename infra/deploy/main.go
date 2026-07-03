@@ -232,6 +232,18 @@ func main() {
 			return nil
 		}
 
+		privateServiceEndpoints, err := createPrivateServiceEndpoints(
+			ctx,
+			awsProvider,
+			awsRegion,
+			vpcId,
+			privateSubnetA,
+			privateSubnetB,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create private service endpoints: %w", err)
+		}
+
 		// EKS cluster spans public + private subnets so the AWS cloud controller can place
 		// internet-facing NLBs in public subnets while nodes remain in private subnets.
 		cluster, err := eks.NewCluster(ctx, "meme-generator-cluster", &eks.ClusterArgs{
@@ -348,7 +360,7 @@ func main() {
 			ResolveConflictsOnUpdate: pulumi.String("OVERWRITE"),
 		},
 			pulumi.Provider(awsProvider),
-			pulumi.DependsOn([]pulumi.Resource{nodeGroup}),
+			pulumi.DependsOn([]pulumi.Resource{nodeGroup, privateServiceEndpoints.EKSAuthEndpoint}),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to create EKS Pod Identity agent addon: %w", err)
@@ -454,7 +466,7 @@ func main() {
 			},
 		},
 			pulumi.Provider(k8sProvider),
-			pulumi.DependsOn([]pulumi.Resource{nodeGroup, podIdentityAgentAddon, podIdentityAssociation}),
+			pulumi.DependsOn([]pulumi.Resource{nodeGroup, podIdentityAgentAddon, podIdentityAssociation, privateServiceEndpoints.S3Endpoint}),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to apply kubernetes manifests: %w", err)
@@ -472,6 +484,9 @@ func main() {
 		ctx.Export("logGroupName", logGroup.Name)
 		ctx.Export("loadBalancerServiceName", pulumi.String("meme-generator-service"))
 		ctx.Export("podIdentityRoleArn", memeGeneratorPodIdentityRole.Arn)
+		ctx.Export("privateEndpointSecurityGroupId", privateServiceEndpoints.SecurityGroup.ID())
+		ctx.Export("eksAuthEndpointId", privateServiceEndpoints.EKSAuthEndpoint.ID())
+		ctx.Export("s3EndpointId", privateServiceEndpoints.S3Endpoint.ID())
 		return nil
 	})
 }

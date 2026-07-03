@@ -34,7 +34,7 @@ services:
       - PUBLIC_SUBNET_B=${PUBLIC_SUBNET_B}
       - PRIVATE_SUBNET_A=${PRIVATE_SUBNET_A}
       - PRIVATE_SUBNET_B=${PRIVATE_SUBNET_B}
-      - MY_S3_BUCKET=${MY_S3_BUCKET}
+      - MY_S3_BUCKET=${MY_S3_BUCKET} # unique name of bucket, not ARN.
 
   pulumi-network:
     image: pulumi/pulumi-go:latest
