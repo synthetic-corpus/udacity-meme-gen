@@ -10,8 +10,8 @@ COPY . .
 # Install dependencies from requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 80 (as specified in app.py)
-EXPOSE 8080
+# Expose port 5000 (as specified in app.py)
+EXPOSE 5000
 
 # Run the Flask application
 CMD ["python", "app.py"]

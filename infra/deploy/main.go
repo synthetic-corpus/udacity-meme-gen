@@ -88,6 +88,22 @@ func main() {
 		if s3BucketName == "" {
 			return fmt.Errorf("MY_S3_BUCKET environment variable is required")
 		}
+		dynamoTableName := os.Getenv("DYNAMO_TABLE") // TODO: Read this from Pulumi once DynamoDB is managed in this stack.
+		if dynamoTableName == "" {
+			return fmt.Errorf("DYNAMO_TABLE environment variable is required")
+		}
+		cdnDomain := os.Getenv("CDN") // TODO: Read this from Pulumi once the CDN is managed in this stack.
+		if cdnDomain == "" {
+			return fmt.Errorf("CDN environment variable is required")
+		}
+		logGroupName := "Meme-generator-logs"
+		appRuntimeEnv := AppRuntimeEnv{
+			S3Bucket:     s3BucketName,
+			SourceRegion: awsRegion,
+			DynamoTable:  dynamoTableName,
+			CDN:          cdnDomain,
+			LogGroup:     logGroupName,
+		}
 
 		// Extract the server URL from the ECR repository URL (domain only, without the repo path)
 		// ECR URL format: account.dkr.ecr.region.amazonaws.com/repo-name
@@ -191,7 +207,7 @@ func main() {
 		// ===== EKS Cluster Setup =====
 
 		logGroup, err := cloudwatch.NewLogGroup(ctx, "meme-generator-logs", &cloudwatch.LogGroupArgs{
-			Name:            pulumi.String("Meme-generator-logs"),
+			Name:            pulumi.String(logGroupName),
 			RetentionInDays: pulumi.Int(7),
 		}, pulumi.Provider(awsProvider))
 		if err != nil {
@@ -467,6 +483,7 @@ func main() {
 			},
 			Transformations: []k8syaml.Transformation{
 				deploymentImageTransform(latestImageURL),
+				deploymentEnvTransform(appRuntimeEnv),
 				loadBalancerSubnetTransform(publicSubnetA, publicSubnetB),
 			},
 		},
