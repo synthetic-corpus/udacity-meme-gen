@@ -88,22 +88,11 @@ func main() {
 		if s3BucketName == "" {
 			return fmt.Errorf("MY_S3_BUCKET environment variable is required")
 		}
-		dynamoTableName := os.Getenv("DYNAMO_TABLE") // TODO: Read this from Pulumi once DynamoDB is managed in this stack.
-		if dynamoTableName == "" {
-			return fmt.Errorf("DYNAMO_TABLE environment variable is required")
-		}
 		cdnDomain := os.Getenv("CDN") // TODO: Read this from Pulumi once the CDN is managed in this stack.
 		if cdnDomain == "" {
 			return fmt.Errorf("CDN environment variable is required")
 		}
 		logGroupName := "Meme-generator-logs"
-		appRuntimeEnv := AppRuntimeEnv{
-			S3Bucket:     s3BucketName,
-			SourceRegion: awsRegion,
-			DynamoTable:  dynamoTableName,
-			CDN:          cdnDomain,
-			LogGroup:     logGroupName,
-		}
 
 		// Extract the server URL from the ECR repository URL (domain only, without the repo path)
 		// ECR URL format: account.dkr.ecr.region.amazonaws.com/repo-name
@@ -215,7 +204,27 @@ func main() {
 			return nil
 		}
 
-		eksIAM, err := createEKSIAM(ctx, awsProvider, logGroup, s3BucketName)
+		dynamoResources, err := createDynamoResources(
+			ctx,
+			awsProvider,
+			awsRegion,
+			vpcId,
+			privateSubnetA,
+			privateSubnetB,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create DynamoDB resources: %w", err)
+		}
+
+		appRuntimeEnv := AppRuntimeEnv{
+			S3Bucket:     pulumi.String(s3BucketName),
+			SourceRegion: pulumi.String(awsRegion),
+			DynamoTable:  dynamoResources.Table.Name,
+			CDN:          pulumi.String(cdnDomain),
+			LogGroup:     logGroup.Name,
+		}
+
+		eksIAM, err := createEKSIAM(ctx, awsProvider, logGroup, s3BucketName, dynamoResources.Table.Arn)
 		if err != nil {
 			return nil
 		}
@@ -488,7 +497,7 @@ func main() {
 			},
 		},
 			pulumi.Provider(k8sProvider),
-			pulumi.DependsOn([]pulumi.Resource{nodeGroup, podIdentityAgentAddon, podIdentityAssociation, privateServiceEndpoints.S3Endpoint}),
+			pulumi.DependsOn([]pulumi.Resource{nodeGroup, podIdentityAgentAddon, podIdentityAssociation, privateServiceEndpoints.S3Endpoint, dynamoResources.GatewayEndpoint}),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to apply kubernetes manifests: %w", err)
@@ -510,6 +519,9 @@ func main() {
 		ctx.Export("eksAuthEndpointId", privateServiceEndpoints.EKSAuthEndpoint.ID())
 		ctx.Export("s3EndpointId", privateServiceEndpoints.S3Endpoint.ID())
 		ctx.Export("podIdentityBucketName", pulumi.String(s3BucketName))
+		ctx.Export("dynamoTableName", dynamoResources.Table.Name)
+		ctx.Export("dynamoTableArn", dynamoResources.Table.Arn)
+		ctx.Export("dynamoGatewayEndpointId", dynamoResources.GatewayEndpoint.ID())
 		return nil
 	})
 }

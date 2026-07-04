@@ -16,7 +16,7 @@ type EKSIAMRoles struct {
 	PodIdentityRole *iam.Role
 }
 
-func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *cloudwatch.LogGroup, s3BucketName string) (*EKSIAMRoles, error) {
+func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *cloudwatch.LogGroup, s3BucketName string, dynamoTableArn pulumi.StringInput) (*EKSIAMRoles, error) {
 	eksClusterRole, err := iam.NewRole(ctx, "eks-cluster-role", &iam.RoleArgs{
 		AssumeRolePolicy: pulumi.String(`{
 			"Version": "2012-10-17",
@@ -116,6 +116,9 @@ func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *clou
 	}
 
 	if err := attachPodIdentityS3Policy(ctx, awsProvider, podIdentityRole, s3BucketName); err != nil {
+		return nil, err
+	}
+	if err := attachPodIdentityDynamoPolicy(ctx, awsProvider, podIdentityRole, dynamoTableArn); err != nil {
 		return nil, err
 	}
 
@@ -220,6 +223,47 @@ func attachPodIdentityS3Policy(ctx *pulumi.Context, awsProvider *aws.Provider, p
 	}, pulumi.Provider(awsProvider))
 	if err != nil {
 		ctx.Log.Debug(fmt.Sprintf("Error at EKS Pod Identity S3 Policy: %v", err), nil)
+		return err
+	}
+
+	return nil
+}
+
+func attachPodIdentityDynamoPolicy(ctx *pulumi.Context, awsProvider *aws.Provider, podIdentityRole *iam.Role, dynamoTableArn pulumi.StringInput) error {
+	dynamoPolicy := pulumi.All(dynamoTableArn).ApplyT(func(args []interface{}) (string, error) {
+		tableArn := args[0].(string)
+		return fmt.Sprintf(`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Action": [
+						"dynamodb:BatchGetItem",
+						"dynamodb:BatchWriteItem",
+						"dynamodb:ConditionCheckItem",
+						"dynamodb:DeleteItem",
+						"dynamodb:DescribeTable",
+						"dynamodb:GetItem",
+						"dynamodb:PutItem",
+						"dynamodb:Query",
+						"dynamodb:Scan",
+						"dynamodb:UpdateItem"
+					],
+					"Resource": [
+						"%s",
+						"%s/index/*"
+					]
+				}
+			]
+		}`, tableArn, tableArn), nil
+	}).(pulumi.StringOutput)
+
+	_, err := iam.NewRolePolicy(ctx, "meme-generator-pod-identity-dynamo-policy", &iam.RolePolicyArgs{
+		Role:   podIdentityRole.Name,
+		Policy: dynamoPolicy,
+	}, pulumi.Provider(awsProvider))
+	if err != nil {
+		ctx.Log.Debug(fmt.Sprintf("Error at EKS Pod Identity Dynamo Policy: %v", err), nil)
 		return err
 	}
 

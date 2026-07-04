@@ -15,11 +15,11 @@ import (
 )
 
 type AppRuntimeEnv struct {
-	S3Bucket     string
-	SourceRegion string
-	DynamoTable  string
-	CDN          string
-	LogGroup     string
+	S3Bucket     pulumi.StringInput
+	SourceRegion pulumi.StringInput
+	DynamoTable  pulumi.StringInput
+	CDN          pulumi.StringInput
+	LogGroup     pulumi.StringInput
 }
 
 func hashDir(root string) (string, error) {
