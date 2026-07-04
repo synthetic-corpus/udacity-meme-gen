@@ -88,10 +88,6 @@ func main() {
 		if s3BucketName == "" {
 			return fmt.Errorf("MY_S3_BUCKET environment variable is required")
 		}
-		cdnDomain := os.Getenv("CDN") // TODO: Read this from Pulumi once the CDN is managed in this stack.
-		if cdnDomain == "" {
-			return fmt.Errorf("CDN environment variable is required")
-		}
 		logGroupName := "Meme-generator-logs"
 
 		// Extract the server URL from the ECR repository URL (domain only, without the repo path)
@@ -204,6 +200,16 @@ func main() {
 			return nil
 		}
 
+		cdnResources, err := createCDNResources(
+			ctx,
+			awsProvider,
+			awsRegion,
+			s3BucketName,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create CDN resources: %w", err)
+		}
+
 		dynamoResources, err := createDynamoResources(
 			ctx,
 			awsProvider,
@@ -220,7 +226,7 @@ func main() {
 			S3Bucket:     pulumi.String(s3BucketName),
 			SourceRegion: pulumi.String(awsRegion),
 			DynamoTable:  dynamoResources.Table.Name,
-			CDN:          pulumi.String(cdnDomain),
+			CDN:          cdnResources.Distribution.DomainName,
 			LogGroup:     logGroup.Name,
 		}
 
@@ -497,7 +503,7 @@ func main() {
 			},
 		},
 			pulumi.Provider(k8sProvider),
-			pulumi.DependsOn([]pulumi.Resource{nodeGroup, podIdentityAgentAddon, podIdentityAssociation, privateServiceEndpoints.S3Endpoint, dynamoResources.GatewayEndpoint}),
+			pulumi.DependsOn([]pulumi.Resource{nodeGroup, podIdentityAgentAddon, podIdentityAssociation, privateServiceEndpoints.S3Endpoint, dynamoResources.GatewayEndpoint, cdnResources.Distribution}),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to apply kubernetes manifests: %w", err)
@@ -522,6 +528,9 @@ func main() {
 		ctx.Export("dynamoTableName", dynamoResources.Table.Name)
 		ctx.Export("dynamoTableArn", dynamoResources.Table.Arn)
 		ctx.Export("dynamoGatewayEndpointId", dynamoResources.GatewayEndpoint.ID())
+		ctx.Export("cdnDistributionId", cdnResources.Distribution.ID())
+		ctx.Export("cdnDistributionArn", cdnResources.Distribution.Arn)
+		ctx.Export("cdnDomainName", cdnResources.Distribution.DomainName)
 		return nil
 	})
 }
