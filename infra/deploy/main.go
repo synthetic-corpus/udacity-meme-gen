@@ -132,7 +132,7 @@ func main() {
 		}
 
 		// === Determines from here, should we even push? Pushes if yes ===
-		currentHash, err := hashDir("/proj/src-test")
+		currentHash, err := hashDir("/proj/src")
 		if err != nil {
 			return fmt.Errorf("failed to hash directory: %w", err)
 		}
@@ -147,7 +147,7 @@ func main() {
 				ctx.Log.Info("naming image: "+fmt.Sprintf("%s:%s", ecrRepoUrl, currentHash), nil)
 				image, err := docker.NewImage(ctx, "meme-generator-app", &docker.ImageArgs{ // TODO use a Pipe here
 					Build: &docker.DockerBuildArgs{
-						Context: pulumi.String("src-test"), // Path relative to working directory /proj
+						Context: pulumi.String("src"), // Path relative to working directory /proj
 						Args: pulumi.StringMap{
 							"SOURCE_HASH": pulumi.String(currentHash),
 						},
