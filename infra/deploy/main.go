@@ -69,6 +69,12 @@ func main() {
 			return fmt.Errorf("PRIVATE_SUBNET_A and PRIVATE_SUBNET_B environment variables are required")
 		}
 
+		// Route table for private subnets (exported as privateRouteTableId from the network stack).
+		privateRouteTableId := os.Getenv("PRIVATE_ROUTE_TABLE_ID")
+		if privateRouteTableId == "" {
+			return fmt.Errorf("PRIVATE_ROUTE_TABLE_ID environment variable is required")
+		}
+
 		// Must match kubernetes.io/cluster/* tags on subnets in the network stack.
 		eksClusterName := os.Getenv("EKS_CLUSTER_NAME")
 		if eksClusterName == "" {
@@ -215,19 +221,18 @@ func main() {
 			awsProvider,
 			awsRegion,
 			vpcId,
-			privateSubnetA,
-			privateSubnetB,
+			privateRouteTableId,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to create DynamoDB resources: %w", err)
 		}
 
 		appRuntimeEnv := AppRuntimeEnv{
-			S3Bucket:     pulumi.String(s3BucketName),
-			SourceRegion: pulumi.String(awsRegion),
-			DynamoTable:  dynamoResources.Table.Name,
+			S3Bucket:     s3BucketName,
+			SourceRegion: awsRegion,
+			DynamoTable:  "MemeDynmoLogs",
 			CDN:          cdnResources.Distribution.DomainName,
-			LogGroup:     logGroup.Name,
+			LogGroup:     logGroupName,
 		}
 
 		eksIAM, err := createEKSIAM(ctx, awsProvider, logGroup, s3BucketName, dynamoResources.Table.Arn)
@@ -275,6 +280,7 @@ func main() {
 			vpcId,
 			privateSubnetA,
 			privateSubnetB,
+			privateRouteTableId,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to create private service endpoints: %w", err)

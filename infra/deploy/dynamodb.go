@@ -19,28 +19,10 @@ func createDynamoResources(
 	awsProvider *aws.Provider,
 	awsRegion string,
 	vpcId string,
-	privateSubnetA string,
-	privateSubnetB string,
+	privateRouteTableId string,
 ) (*DynamoResources, error) {
-	privateRouteTableA, err := ec2.LookupRouteTable(ctx, &ec2.LookupRouteTableArgs{
-		SubnetId: pulumi.StringRef(privateSubnetA),
-	}, pulumi.Provider(awsProvider))
-	if err != nil {
-		return nil, fmt.Errorf("failed to look up private route table for subnet A: %w", err)
-	}
-
-	privateRouteTableB, err := ec2.LookupRouteTable(ctx, &ec2.LookupRouteTableArgs{
-		SubnetId: pulumi.StringRef(privateSubnetB),
-	}, pulumi.Provider(awsProvider))
-	if err != nil {
-		return nil, fmt.Errorf("failed to look up private route table for subnet B: %w", err)
-	}
-
 	privateRouteTableIds := pulumi.StringArray{
-		pulumi.String(privateRouteTableA.Id),
-	}
-	if privateRouteTableB.Id != privateRouteTableA.Id {
-		privateRouteTableIds = append(privateRouteTableIds, pulumi.String(privateRouteTableB.Id))
+		pulumi.String(privateRouteTableId),
 	}
 
 	dynamoTable, err := dynamodb.NewTable(ctx, "meme-generator-processing-table", &dynamodb.TableArgs{

@@ -22,6 +22,7 @@ func createPrivateServiceEndpoints(
 	vpcId string,
 	privateSubnetA string,
 	privateSubnetB string,
+	privateRouteTableId string,
 ) (*PrivateServiceEndpoints, error) {
 	privateSubnetADetails, err := ec2.LookupSubnet(ctx, &ec2.LookupSubnetArgs{
 		Id: pulumi.StringRef(privateSubnetA),
@@ -90,15 +91,17 @@ func createPrivateServiceEndpoints(
 		return nil, fmt.Errorf("failed to create EKS Auth VPC endpoint: %w", err)
 	}
 
+	// S3 uses a gateway endpoint for in-VPC traffic (free, route-table based).
+	// An interface endpoint with private DNS requires an S3 gateway endpoint to already exist.
 	s3Endpoint, err := ec2.NewVpcEndpoint(ctx, "s3-private-endpoint", &ec2.VpcEndpointArgs{
-		VpcId:             pulumi.String(vpcId),
-		ServiceName:       pulumi.String(fmt.Sprintf("com.amazonaws.%s.s3", awsRegion)),
-		VpcEndpointType:   pulumi.String("Interface"),
-		PrivateDnsEnabled: pulumi.Bool(true),
-		SubnetIds:         privateSubnetIds,
-		SecurityGroupIds:  privateEndpointSecurityGroups,
+		VpcId:           pulumi.String(vpcId),
+		ServiceName:     pulumi.String(fmt.Sprintf("com.amazonaws.%s.s3", awsRegion)),
+		VpcEndpointType: pulumi.String("Gateway"),
+		RouteTableIds: pulumi.StringArray{
+			pulumi.String(privateRouteTableId),
+		},
 		Tags: pulumi.StringMap{
-			"Name": pulumi.String("s3-private-endpoint"),
+			"Name": pulumi.String("s3-private-gateway-endpoint"),
 		},
 	}, pulumi.Provider(awsProvider))
 	if err != nil {

@@ -5,11 +5,13 @@ metadata:
   labels:
     app: meme-generator
   annotations:
-    # Use EKS built-in service controller (not AWS Load Balancer Controller).
-    # "external" requires the separate LBC install; "nlb" provisions via the cloud controller.
-    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    # nlb-ip registers pod IPs on targetPort (5000). The plain "nlb" type uses the
+    # in-tree controller which ignores nlb-target-type: ip and falls back to
+    # instance/NodePort mode (e.g. 30702), which our security group does not allow.
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb-ip
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "5000"
 spec:
   type: LoadBalancer
   ports:
