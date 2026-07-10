@@ -77,6 +77,9 @@ class S3engine:
     def load_fonts(self, folder='/usr/share/fonts') -> str:
         """ This call loads fonts from s3 to an ec2 instance """
         fonts = self.list_content('_fonts')
+        if fonts is None:
+            cloud_logger.error('No fonts found')
+            return "fonts not found"
         output_array = []
         for font_tuple in fonts:
             font, font_name = self.get_file(font_tuple[0])
@@ -94,6 +97,9 @@ class S3engine:
     def load_quotes(self, path):
         """ Loads quotes into a local folder on ec2 """
         quotes = self.list_content('_textdata')
+        if quotes is None:
+            cloud_logger.error('No quotes found')
+            return "quotes note found"
         sources = []
         for quote_tuple in quotes:
             quote_data, quote_name = self.get_file(quote_tuple[0])

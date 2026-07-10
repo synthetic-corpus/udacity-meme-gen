@@ -43,5 +43,6 @@ def log_wrapper(func):
             return result
         except Exception as e:
             logger.error(f'Exception in {func.__name__}: {e}')
-            raise
+            # raise
+            return None
     return wrapper
