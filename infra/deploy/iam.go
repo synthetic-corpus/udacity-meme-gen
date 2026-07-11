@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
@@ -9,11 +10,18 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
+// Official AWS Load Balancer Controller IAM policy (v2.14.1).
+// Source: https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.14.1/docs/install/iam_policy.json
+//
+//go:embed iam_policy_lbc.json
+var awsLoadBalancerControllerIAMPolicy string
+
 // EKSIAMRoles holds IAM roles used by the EKS cluster, node group, and workloads.
 type EKSIAMRoles struct {
-	ClusterRole     *iam.Role
-	NodeRole        *iam.Role
-	PodIdentityRole *iam.Role
+	ClusterRole                *iam.Role
+	NodeRole                   *iam.Role
+	PodIdentityRole            *iam.Role
+	LoadBalancerControllerRole *iam.Role
 }
 
 func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *cloudwatch.LogGroup, s3BucketName string, dynamoTableArn pulumi.StringInput) (*EKSIAMRoles, error) {
@@ -122,11 +130,60 @@ func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *clou
 		return nil, err
 	}
 
+	lbcRole, err := createLoadBalancerControllerRole(ctx, awsProvider)
+	if err != nil {
+		return nil, err
+	}
+
 	return &EKSIAMRoles{
-		ClusterRole:     eksClusterRole,
-		NodeRole:        eksNodeRole,
-		PodIdentityRole: podIdentityRole,
+		ClusterRole:                eksClusterRole,
+		NodeRole:                   eksNodeRole,
+		PodIdentityRole:            podIdentityRole,
+		LoadBalancerControllerRole: lbcRole,
 	}, nil
+}
+
+func createLoadBalancerControllerRole(ctx *pulumi.Context, awsProvider *aws.Provider) (*iam.Role, error) {
+	lbcRole, err := iam.NewRole(ctx, "aws-load-balancer-controller-role", &iam.RoleArgs{
+		AssumeRolePolicy: pulumi.String(`{
+			"Version": "2012-10-17",
+			"Statement": [{
+				"Effect": "Allow",
+				"Principal": {
+					"Service": "pods.eks.amazonaws.com"
+				},
+				"Action": [
+					"sts:AssumeRole",
+					"sts:TagSession"
+				]
+			}]
+		}`),
+		Description: pulumi.String("IAM role assumed by the AWS Load Balancer Controller via EKS Pod Identity"),
+	}, pulumi.Provider(awsProvider))
+	if err != nil {
+		ctx.Log.Debug(fmt.Sprintf("Error at AWS Load Balancer Controller Role: %v", err), nil)
+		return nil, err
+	}
+
+	lbcPolicy, err := iam.NewPolicy(ctx, "aws-load-balancer-controller-policy", &iam.PolicyArgs{
+		Description: pulumi.String("Permissions for the AWS Load Balancer Controller to manage ALB/NLB resources"),
+		Policy:      pulumi.String(awsLoadBalancerControllerIAMPolicy),
+	}, pulumi.Provider(awsProvider))
+	if err != nil {
+		ctx.Log.Debug(fmt.Sprintf("Error at AWS Load Balancer Controller Policy: %v", err), nil)
+		return nil, err
+	}
+
+	_, err = iam.NewRolePolicyAttachment(ctx, "aws-load-balancer-controller-policy-attachment", &iam.RolePolicyAttachmentArgs{
+		Role:      lbcRole.Name,
+		PolicyArn: lbcPolicy.Arn,
+	}, pulumi.Provider(awsProvider))
+	if err != nil {
+		ctx.Log.Debug(fmt.Sprintf("Error at AWS Load Balancer Controller Policy Attachment: %v", err), nil)
+		return nil, err
+	}
+
+	return lbcRole, nil
 }
 
 func attachCloudWatchLogsPolicies(ctx *pulumi.Context, awsProvider *aws.Provider, clusterRole, nodeRole *iam.Role, logGroup *cloudwatch.LogGroup) error {

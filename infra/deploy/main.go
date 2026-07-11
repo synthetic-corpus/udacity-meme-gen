@@ -242,6 +242,7 @@ func main() {
 		eksClusterRole := eksIAM.ClusterRole
 		eksNodeRole := eksIAM.NodeRole
 		memeGeneratorPodIdentityRole := eksIAM.PodIdentityRole
+		lbcRole := eksIAM.LoadBalancerControllerRole
 
 		// Security group for EKS pods / nodes (NLB IP targets reach pods on port 5000).
 		eksSecurityGroup, err := ec2.NewSecurityGroup(ctx, "eks-pod-security-group", &ec2.SecurityGroupArgs{
@@ -494,6 +495,21 @@ func main() {
 			ctx.Log.Debug(fmt.Sprintf("Error at Kubconfig: %s", err), nil)
 			return nil
 		}
+
+		lbc, err := installAWSLoadBalancerController(
+			ctx,
+			awsProvider,
+			k8sProvider,
+			cluster,
+			lbcRole,
+			vpcId,
+			awsRegion,
+			[]pulumi.Resource{nodeGroup, podIdentityAgentAddon},
+		)
+		if err != nil {
+			return err
+		}
+
 		// Deploy k8s/*.yaml; inject the ECR image URL into the Deployment via transformation.
 		_, err = k8syaml.NewConfigGroup(ctx, "meme-app-manifests", &k8syaml.ConfigGroupArgs{
 			Files: []string{
@@ -509,7 +525,15 @@ func main() {
 			},
 		},
 			pulumi.Provider(k8sProvider),
-			pulumi.DependsOn([]pulumi.Resource{nodeGroup, podIdentityAgentAddon, podIdentityAssociation, privateServiceEndpoints.S3Endpoint, dynamoResources.GatewayEndpoint, cdnResources.Distribution}),
+			pulumi.DependsOn([]pulumi.Resource{
+				nodeGroup,
+				podIdentityAgentAddon,
+				podIdentityAssociation,
+				lbc.HelmRelease,
+				privateServiceEndpoints.S3Endpoint,
+				dynamoResources.GatewayEndpoint,
+				cdnResources.Distribution,
+			}),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to apply kubernetes manifests: %w", err)
@@ -527,6 +551,8 @@ func main() {
 		ctx.Export("logGroupName", logGroup.Name)
 		ctx.Export("loadBalancerServiceName", pulumi.String("meme-generator-service"))
 		ctx.Export("podIdentityRoleArn", memeGeneratorPodIdentityRole.Arn)
+		ctx.Export("loadBalancerControllerRoleArn", lbcRole.Arn)
+		ctx.Export("loadBalancerControllerHelmRelease", lbc.HelmRelease.Name)
 		ctx.Export("privateEndpointSecurityGroupId", privateServiceEndpoints.SecurityGroup.ID())
 		ctx.Export("eksAuthEndpointId", privateServiceEndpoints.EKSAuthEndpoint.ID())
 		ctx.Export("s3EndpointId", privateServiceEndpoints.S3Endpoint.ID())
