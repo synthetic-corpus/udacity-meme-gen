@@ -8,6 +8,7 @@ from io import BytesIO
 from pathlib import Path
 from abc import ABC
 from cloudlogger import cloud_logger, log_wrapper
+from S3engine import S3engine
 
 
 class BadWebRequest(FileNotFoundError):
@@ -45,7 +46,7 @@ class WebRequestor(ABC):
     def get_image(self, url) -> tuple[ImageFile, str]:
         try:
             b = self.get_file(url)
-            image = Image.open(BytesIO(b))
+            image = S3engine.ensure_rgb_for_jpeg(Image.open(BytesIO(b)))
             return (image, url)
         except Exception as e:
             raise e

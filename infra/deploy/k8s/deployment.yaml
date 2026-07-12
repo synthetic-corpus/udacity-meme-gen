@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meme-generator
+  labels:
+    app: meme-generator
+spec:
+  replicas: 2 # Starts with 2 as your minimum
+  selector:
+    matchLabels:
+      app: meme-generator
+  template:
+    metadata:
+      labels:
+        app: meme-generator
+    spec:
+      serviceAccountName: meme-generator-sa
+      containers:
+      - name: meme-generator
+        image: PLACEHOLDER # set by Pulumi deploymentImageTransform from ECR build output
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "100m" # HPA uses this baseline for the 80% utilization calculation
+            memory: "128Mi"
+            ephemeral-storage: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+            ephemeral-storage: "512Mi"

@@ -1,3 +1,5 @@
+# This is a legacy template. New Deployment to be handled by Pulumi.
+# See the Infra folder
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Deploy a single EC2 instance behind an ALB in the default VPC.
 

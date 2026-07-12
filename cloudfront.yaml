@@ -1,3 +1,5 @@
+# This is a legacy template. New deployment to be by pulumi.
+# See the infra folder.
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'This creates a Cloud Front distro from an s3 Bucket.'
 

@@ -7,7 +7,7 @@
 """
 
 from random import randint, choice
-import subprocess
+import os
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFile import ImageFile
 
@@ -18,8 +18,9 @@ class MemeGenerator:
         @path = the folder of the s3 bucket.
     """
 
-    def __init__(self, out_folder):
+    def __init__(self, out_folder, font_folder='/tmp/fonts'):
         self._out_path = out_folder
+        self._font_folder = font_folder
 
     def make_meme(
             self,
@@ -43,23 +44,15 @@ class MemeGenerator:
         image_name = f'{uuid}-text.jpeg'
         return (source_file, image_name)
 
-    @classmethod
-    def random_font(cls) -> str:
-        """ Returns a Random Font from an EC2 cli"""
-        refresh_command = ['fc-cache','-fv']
-        result = subprocess.run(refresh_command, 
-               capture_output=True, 
-               text=True)
-
-        font_cmd = ['fc-list','--format=%{file}\n']
-        result = subprocess.run(font_cmd,
-                       capture_output=True,
-                       text=True)
-
-        fonts = result.stdout.split('\n')
-        fonts = [x.split('/')[-1] for x in fonts if 'google' not in x]
-        fonts = [x for x in fonts if x != '']
-
+    def random_font(self) -> str:
+        """Return the full path to a random font under font_folder."""
+        fonts = [
+            os.path.join(self._font_folder, name)
+            for name in os.listdir(self._font_folder)
+            if name.lower().endswith(('.ttf', '.otf'))
+        ]
+        if not fonts:
+            raise FileNotFoundError(f'No fonts found in {self._font_folder}')
         return choice(fonts)
 
     @classmethod
