@@ -129,6 +129,9 @@ func createEKSIAM(ctx *pulumi.Context, awsProvider *aws.Provider, logGroup *clou
 	if err := attachPodIdentityDynamoPolicy(ctx, awsProvider, podIdentityRole, dynamoTableArn); err != nil {
 		return nil, err
 	}
+	if err := attachPodIdentityLogsPolicy(ctx, awsProvider, podIdentityRole, logGroup); err != nil {
+		return nil, err
+	}
 
 	lbcRole, err := createLoadBalancerControllerRole(ctx, awsProvider)
 	if err != nil {
@@ -256,6 +259,43 @@ func attachEKSNodeECRPolicy(ctx *pulumi.Context, awsProvider *aws.Provider, node
 		ctx.Log.Debug(fmt.Sprintf("Error at EKS Node ECR Policy: %v", err), nil)
 		return err
 	}
+	return nil
+}
+
+// attachPodIdentityLogsPolicy grants the same CloudWatch Logs actions used by the
+// EC2 instance role in aws-deploy.yaml (CloudWatchLogsPolicy), scoped to the app log group.
+// The log-group ARN plus ":*" covers CreateLogStream / PutLogEvents on streams under that group.
+func attachPodIdentityLogsPolicy(ctx *pulumi.Context, awsProvider *aws.Provider, podIdentityRole *iam.Role, logGroup *cloudwatch.LogGroup) error {
+	logsPolicy := pulumi.All(logGroup.Arn).ApplyT(func(args []interface{}) (string, error) {
+		logGroupArn := args[0].(string)
+		return fmt.Sprintf(`{
+			"Version": "2012-10-17",
+			"Statement": [{
+				"Effect": "Allow",
+				"Action": [
+					"logs:PutLogEvents",
+					"logs:CreateLogGroup",
+					"logs:CreateLogStream",
+					"logs:DescribeLogStreams",
+					"logs:DescribeLogGroups"
+				],
+				"Resource": [
+					"%s",
+					"%s:*"
+				]
+			}]
+		}`, logGroupArn, logGroupArn), nil
+	}).(pulumi.StringOutput)
+
+	_, err := iam.NewRolePolicy(ctx, "meme-generator-pod-identity-logs-policy", &iam.RolePolicyArgs{
+		Role:   podIdentityRole.Name,
+		Policy: logsPolicy,
+	}, pulumi.Provider(awsProvider))
+	if err != nil {
+		ctx.Log.Debug(fmt.Sprintf("Error at EKS Pod Identity CloudWatch Logs Policy: %v", err), nil)
+		return err
+	}
+
 	return nil
 }
 

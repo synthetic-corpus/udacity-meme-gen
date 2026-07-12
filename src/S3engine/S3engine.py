@@ -17,6 +17,18 @@ class S3engine:
         self.my_s3 = boto3.resource('s3', region_name=aws_region)
         self.my_bucket = self.my_s3.Bucket(s3_Bucket)
 
+    @staticmethod
+    def ensure_rgb_for_jpeg(image: Image.Image) -> Image.Image:
+        """JPEG cannot store alpha; normalize opened images to RGB before save."""
+        if image.mode == 'RGB':
+            return image
+        if image.mode in ('RGBA', 'LA'):
+            background = Image.new('RGB', image.size, (255, 255, 255))
+            rgba = image.convert('RGBA')
+            background.paste(rgba, mask=rgba.split()[-1])
+            return background
+        return image.convert('RGB')
+
     # Uncomment @log_wrapper if more precise logging is needed.
     # @log_wrapper
     def list_content(self, folder='_sources') -> list[tuple[str, str]]:
@@ -42,6 +54,7 @@ class S3engine:
             response = s3_object.get()
             file_stream = response['Body']
             this_image = Image.open(file_stream)
+            this_image = S3engine.ensure_rgb_for_jpeg(this_image)
             """ return the original name of the file too """
             return (this_image, object_key.split("/")[1])
         except Exception as e:
@@ -55,6 +68,7 @@ class S3engine:
             object_key = f'{folder}/{object_name}'
             new_s3_object = self.my_bucket.Object(object_key)
             file_stream = BytesIO()
+            image = S3engine.ensure_rgb_for_jpeg(image)
             image.save(file_stream, format='jpeg')
             new_s3_object.put(Body=file_stream.getvalue())
             # Return the constructed url of the images
@@ -74,12 +88,13 @@ class S3engine:
         return (file_stream, file_key.split("/")[1])
 
     # @log_wrapper
-    def load_fonts(self, folder='/usr/share/fonts') -> str:
-        """ This call loads fonts from s3 to an ec2 instance """
+    def load_fonts(self, folder='/tmp/fonts') -> str:
+        """Download fonts from s3 into a writable local folder (pod-safe)."""
         fonts = self.list_content('_fonts')
         if fonts is None:
             cloud_logger.error('No fonts found')
             return "fonts not found"
+        os.makedirs(folder, exist_ok=True)
         output_array = []
         for font_tuple in fonts:
             font, font_name = self.get_file(font_tuple[0])

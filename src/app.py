@@ -8,8 +8,11 @@ from MemeEngine import MemeGenerator
 from WebEngine import ImageRequestor, BadWebRequest
 from S3engine import S3engine
 from DatabaseAccess import DatabaseAccess
-from cloudlogger import cloud_logger
+from cloudlogger import cloud_logger, capture_stdout, log_wrapper
 from setup import setup_text
+
+# Tee stdout/stderr to CloudWatch so import-time prints (and nested prints) show up.
+capture_stdout()
 
 app = Flask(__name__)
 
@@ -26,15 +29,17 @@ s3access.load_fonts()
 print('making db client')
 databaseAccess = DatabaseAccess(os.environ['DYNAMO_TABLE'],
                                 os.environ['SOURCE_REGION'])
+print('startup complete')
 
 
 @app.route('/')
+@log_wrapper
 def meme_rand():
     """ Generate a random meme """
     ID = uuid.uuid4()
     img_key_tup = random.choice(imgs)
     quote = random.choice(quotes)
-    my_font = MemeGenerator.random_font()
+    my_font = meme.random_font()
     try:
         image_obj, _ = s3access.get_image(img_key_tup[0])
         processed_image, image_name = meme.make_meme(
@@ -63,7 +68,8 @@ def meme_rand():
         return render_template('meme.html', path=url_path)
     except Exception as e:
         oops = f'{type(e).__name__} Exception: - {e}'
-        cloud_logger.info(oops)
+        cloud_logger.error(oops, exc_info=True)
+        raise
 
 
 @app.route('/health', methods=['GET'])
@@ -86,7 +92,7 @@ def meme_post():
     try:
         web_image, _ = requestor.get_image(params['image_url'])
         ID = uuid.uuid4()
-        my_font = MemeGenerator.random_font()
+        my_font = meme.random_font()
         processed_image, image_name = meme.make_meme(
             source_file=web_image,
             text=params['body'],

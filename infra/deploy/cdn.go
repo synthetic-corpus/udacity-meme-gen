@@ -5,6 +5,7 @@ import (
 
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/cloudfront"
+	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/s3"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -12,6 +13,7 @@ type CDNResources struct {
 	CachePolicy         *cloudfront.CachePolicy
 	OriginAccessControl *cloudfront.OriginAccessControl
 	Distribution        *cloudfront.Distribution
+	BucketPolicy        *s3.BucketPolicy
 }
 
 func createCDNResources(
@@ -103,9 +105,39 @@ func createCDNResources(
 		return nil, fmt.Errorf("failed to create CloudFront distribution: %w", err)
 	}
 
+	// Allow this distribution (via OAC) to read meme images from S3 — matches cloudfront.yaml S3Policy.
+	bucketPolicyDoc := distribution.Arn.ApplyT(func(distributionArn string) (string, error) {
+		return fmt.Sprintf(`{
+			"Version": "2012-10-17",
+			"Statement": [{
+				"Sid": "Read access for CDN",
+				"Effect": "Allow",
+				"Principal": {
+					"Service": "cloudfront.amazonaws.com"
+				},
+				"Action": "s3:GetObject",
+				"Resource": "arn:aws:s3:::%s/_images/*",
+				"Condition": {
+					"StringEquals": {
+						"aws:SourceArn": "%s"
+					}
+				}
+			}]
+		}`, s3BucketName, distributionArn), nil
+	}).(pulumi.StringOutput)
+
+	bucketPolicy, err := s3.NewBucketPolicy(ctx, "meme-generator-cdn-bucket-policy", &s3.BucketPolicyArgs{
+		Bucket: pulumi.String(s3BucketName),
+		Policy: bucketPolicyDoc,
+	}, pulumi.Provider(awsProvider), pulumi.DependsOn([]pulumi.Resource{distribution}))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create S3 bucket policy for CloudFront: %w", err)
+	}
+
 	return &CDNResources{
 		CachePolicy:         cachePolicy,
 		OriginAccessControl: originAccessControl,
 		Distribution:        distribution,
+		BucketPolicy:        bucketPolicy,
 	}, nil
 }
